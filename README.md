@@ -1,6 +1,6 @@
 # Spud Launcher
 
-Minimalistyczny, szybki launcher Minecrafta napisany w Rust i Tauri v2 — inspirowany Prism Launcherem i Modrinth App. Każda instancja ma odizolowany katalog `.minecraft`, współdzielone biblioteki i assety trafiają do wspólnego drzewa, a mody, paczki, resource packi i shadery instaluje się jednym kliknięciem z Modrintha.
+Minimalistyczny, szybki launcher Minecrafta napisany w Rust i Tauri v2. Każda instancja ma odizolowany katalog `.minecraft`, współdzielone biblioteki i assety trafiają do wspólnego drzewa, a mody, paczki, resource packi i shadery instaluje się jednym kliknięciem z Modrintha.
 
 Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut w tle, brak dodatkowych procesów podczas gry i przewidywalny, czytelny kod podzielony na warstwy.
 

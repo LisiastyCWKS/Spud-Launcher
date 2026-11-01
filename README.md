@@ -1,5 +1,9 @@
 # Spud Launcher
 
+[![CI](https://github.com/LisiastyCWKS/Spud-Launcher/actions/workflows/ci.yml/badge.svg)](https://github.com/LisiastyCWKS/Spud-Launcher/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/LisiastyCWKS/Spud-Launcher)](https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Minimalistyczny, szybki launcher Minecrafta napisany w Rust i Tauri v2 — inspirowany Prism Launcherem i Modrinth App. Każda instancja ma odizolowany katalog `.minecraft`, współdzielone biblioteki i assety trafiają do wspólnego drzewa, a mody, paczki, resource packi i shadery instaluje się jednym kliknięciem z Modrintha.
 
 Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut w tle, brak dodatkowych procesów podczas gry i przewidywalny, czytelny kod podzielony na warstwy.
@@ -374,15 +378,19 @@ Wynik na Windows x64 (`targets: "all"`, kategoria `Game`):
 
 NSIS instaluje per-user do `%LOCALAPPDATA%\Spud Launcher`, zakłada skrót na pulpicie i w menu Start, dopisuje wpis do „Aplikacje i funkcje” z własnym `uninstall.exe`. Cicha instalacja i deinstalacja: `setup.exe /S`, `uninstall.exe /S`. Setup dociąga WebView2 tylko wtedy, gdy system go nie ma (Windows 11 ma go fabrycznie).
 
-**Przed publikacją:**
-
-1. Podnieś wersję w dwóch miejscach — `version` w `src-tauri/tauri.conf.json` i `[workspace.package] version` w `Cargo.toml`. Tauri bierze numer do nazwy pliku i wpisu w rejestrze.
-2. Przepuść `cargo test --workspace` i `npm --prefix ui run build` (to drugie robi się samo w `tauri build`, ale `tsc` warto mieć zielone osobno).
-3. Policz sumy i wrzuć je do notatki wydania:
+**Wydanie jednym poleceniem.** `scripts/publish.ps1` robi całą ścieżkę za ciebie: podbija wersję, buduje front i bundle, kopiuje artefakty do `release/<wersja>/` pod nazwami z myślnikiem, liczy `SHA256SUMS.txt`, taguje, pcha `main` i tag, a potem tworzy (albo aktualizuje) GitHub Release i wgrywa do niego cztery pliki.
 
 ```powershell
-Get-FileHash "target\release\bundle\nsis\Spud Launcher_0.1.0_x64-setup.exe" -Algorithm SHA256
+# nowa wersja
+powershell -ExecutionPolicy Bypass -File scripts\publish.ps1 -Version 0.2.0
+
+# przebudowanie i ponowne wgranie obecnej
+powershell -ExecutionPolicy Bypass -File scripts\publish.ps1
 ```
+
+Token bierze z Windows Credential Managera (`git credential fill`), więc nic nie ląduje w repo. Zmiana wersji idzie w trzech plikach naraz — `[workspace.package] version` w `Cargo.toml`, `version` w `src-tauri/tauri.conf.json` i `ui/package.json` — bo Tauri i frontend trzymają własne kopie.
+
+Nazwy assetów mają myślnik (`Spud-Launcher_0.1.0_x64-setup.exe`), a nie spację: GitHub zamienia spacje w nazwie wgrywanego pliku na kropki, więc `Spud Launcher_…` wylądowałby jako `Spud.Launcher_…` i rozjechał się z `SHA256SUMS.txt`. Skrypt od razu kasuje stare assety o tych samych nazwach, więc powtórny przebieg nie zostawia dwóch kopii.
 
 **Podpis cyfrowy.** Bundel wychodzi niepodpisany, więc SmartScreen pokaże „Windows protected your PC”, dopóki plik nie zbierze reputacji. Podpisuje się po zbudowaniu:
 
@@ -391,6 +399,10 @@ signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /a "target
 ```
 
 Certyfikat OV/EV (Certum, Sectigo, SSL.com) jest płatny; EV zdejmuje ostrzeżenie od razu, OV po pewnej liczbie pobrań. Wariant bez certyfikatu: publikuj `target\release\spud-launcher.exe` jako portable i zaznacz w notatce wydania, że SmartScreen trzeba obejść przez „More info → Run anyway”.
+
+### CI
+
+`.github/workflows/ci.yml` odpala się na każdy push i pull request do `main`: `npm ci` + `npm run build` w `ui`, potem `cargo build --workspace --locked` i `cargo test --workspace --locked` na `windows-latest`. Cache trzyma rejestr cargo i `node_modules`. Workflow nic nie publikuje — wydania idą wyłącznie przez `scripts/publish.ps1`, żeby tag i assety powstawały w jednym kroku.
 
 ### Testy jednostkowe
 

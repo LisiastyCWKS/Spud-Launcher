@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
     Builds Spud Launcher, publishes the bundles to a GitHub Release and pushes
@@ -45,7 +45,9 @@ function Invoke-Native {
     param([string]$File, [string[]]$Arguments)
     $previous = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-    $output = & $File @Arguments 2>&1
+    # Stringify stderr records as they arrive, otherwise PowerShell formats each
+    # line of git progress as a NativeCommandError.
+    $output = & $File @Arguments 2>&1 | ForEach-Object { "$_" }
     $code = $LASTEXITCODE
     $ErrorActionPreference = $previous
     $output | ForEach-Object { $_ }
@@ -101,14 +103,22 @@ $tag = "v$current"
 # ------------------------------------------------------------------ build ---
 
 if (-not $SkipBuild) {
-    Write-Host 'building frontend'
-    $npm = (Get-Command npm.cmd -ErrorAction SilentlyContinue)
-    if (-not $npm) { throw 'npm.cmd not found on PATH' }
-    Invoke-Native $npm.Source @('--prefix', (Join-Path $root 'ui'), 'run', 'build')
+    # tauri's beforeBuildCommand (`npm run build`) and the CLI itself resolve
+    # paths against the current directory, so every build step runs from the
+    # repository root regardless of where the script was invoked from.
+    Push-Location $root
+    try {
+        Write-Host 'building frontend'
+        $npm = (Get-Command npm.cmd -ErrorAction SilentlyContinue)
+        if (-not $npm) { throw 'npm.cmd not found on PATH' }
+        Invoke-Native $npm.Source @('--prefix', (Join-Path $root 'ui'), 'run', 'build')
 
-    Write-Host 'building bundles'
-    $env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"
-    Invoke-Native 'npm.cmd' @('exec', '--yes', '--package=@tauri-apps/cli@^2', '--', 'tauri', 'build')
+        Write-Host 'building bundles'
+        $env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"
+        Invoke-Native 'npm.cmd' @('exec', '--yes', '--package=@tauri-apps/cli@^2', '--', 'tauri', 'build')
+    } finally {
+        Pop-Location
+    }
 } else {
     Write-Host 'build skipped (-SkipBuild)'
 }
@@ -172,8 +182,13 @@ if (-not $existingTag) {
 # ------------------------------------------------------------------ release ---
 
 $previousTag = & git -C $root tag --list 'v*' | Where-Object { $_ -ne $tag } | Sort-Object | Select-Object -Last 1
-$range = if ($previousTag) { "$previousTag..HEAD" } else { 'HEAD~20..HEAD' }
-$changes = & git -C $root log --pretty=format:'- %s' $range 2>$null
+# A range needs a commit that exists; a fresh repo with two commits has no
+# HEAD~20, and git then fails the whole release over a changelog nobody needs.
+$changes = if ($previousTag) {
+    & git -C $root log --pretty=format:'- %s' "$previousTag..HEAD" 2>$null
+} else {
+    & git -C $root log --pretty=format:'- %s' -20 2>$null
+}
 if (-not $changes) { $changes = '- pierwsze wydanie' }
 
 $notes = @"

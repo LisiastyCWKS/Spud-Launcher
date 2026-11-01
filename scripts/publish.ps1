@@ -45,9 +45,11 @@ function Invoke-Native {
     param([string]$File, [string[]]$Arguments)
     $previous = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-    # Stringify stderr records as they arrive, otherwise PowerShell formats each
-    # line of git progress as a NativeCommandError.
-    $output = & $File @Arguments 2>&1 | ForEach-Object { "$_" }
+    # git writes progress to stderr; PowerShell turns each line into an
+    # ErrorRecord, which formats as a RemoteException blob. Flatten to text.
+    $output = & $File @Arguments 2>&1 | ForEach-Object {
+        if ($_ -is [System.Management.Automation.ErrorRecord]) { $_.Exception.Message } else { "$_" }
+    }
     $code = $LASTEXITCODE
     $ErrorActionPreference = $previous
     $output | ForEach-Object { $_ }
@@ -190,13 +192,16 @@ $changes = if ($previousTag) {
     & git -C $root log --pretty=format:'- %s' -20 2>$null
 }
 if (-not $changes) { $changes = '- pierwsze wydanie' }
+# An array interpolated into a here-string joins with a space; the changelog
+# needs one bullet per line.
+$changeList = ($changes | Where-Object { $_.Trim() }) -join "`n"
 
 $notes = @"
 Spud Launcher $current
 
 ## Zmiany
 
-$changes
+$changeList
 
 ## Pliki
 

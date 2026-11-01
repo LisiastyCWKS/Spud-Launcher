@@ -1,0 +1,40 @@
+[package]
+name = "spud-launcher"
+description = "A fast, minimal, open-source Minecraft launcher"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lib]
+name = "spud_launcher_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dependencies]
+tauri.workspace = true
+tauri-plugin-dialog.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
+chrono.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+launcher-core = { path = "../crates/launcher-core" }
+launcher-net = { path = "../crates/launcher-net" }
+launcher-auth = { path = "../crates/launcher-auth" }
+launcher-modrinth = { path = "../crates/launcher-modrinth" }
+
+sha2.workspace = true
+hex.workspace = true
+zip.workspace = true
+tempfile.workspace = true
+
+[features]
+# Bez tego Tauri traktuje build jako deweloperski i ładuje devUrl zamiast ui/dist.
+# `tauri build` włącza tę flagę automatycznie; ręcznie: `cargo build --features custom-protocol`.
+custom-protocol = ["tauri/custom-protocol"]

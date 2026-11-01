@@ -1,0 +1,16 @@
+[package]
+name = "launcher-modrinth"
+description = "Typed Modrinth API client with dependency resolution for Spud Launcher"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+reqwest.workspace = true
+chrono.workspace = true
+tokio.workspace = true
+tracing.workspace = true

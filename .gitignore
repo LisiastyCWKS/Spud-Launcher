@@ -1,0 +1,28 @@
+# Rust
+/target
+**/target
+*.rs.bk
+Cargo.lock.bak
+
+# Node / frontend
+node_modules
+/ui/dist
+/ui/.vite
+*.local
+
+# Tauri generated
+/src-tauri/gen
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+
+# Local runtime data (never commit launcher state)
+/.spud
+*.log
+
+# Build artifacts — published as GitHub Release assets, not as source
+/release

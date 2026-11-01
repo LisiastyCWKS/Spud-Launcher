@@ -1,0 +1,23 @@
+[package]
+name = "launcher-net"
+description = "HTTP downloads, hash verification, game/loader installers for Spud Launcher"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+launcher-core = { path = "../launcher-core" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
+futures.workspace = true
+sha1.workspace = true
+sha2.workspace = true
+hex.workspace = true
+zip.workspace = true
+tempfile.workspace = true
+tracing.workspace = true
+chrono.workspace = true

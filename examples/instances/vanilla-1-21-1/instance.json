@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "vanilla-1-21-1",
+  "name": "Vanilla 1.21.1",
+  "icon": null,
+  "created_at": "2026-01-04T18:12:00Z",
+  "updated_at": "2026-01-04T18:12:00Z",
+  "last_played_at": "2026-02-11T20:44:12.913Z",
+  "game": {
+    "version": "1.21.1",
+    "loader": "vanilla",
+    "loader_version": null,
+    "version_id": "1.21.1"
+  },
+  "java": {
+    "mode": "auto",
+    "path": null,
+    "min_memory_mb": 512,
+    "max_memory_mb": 3072,
+    "extra_args": []
+  },
+  "window": {
+    "width": 1280,
+    "height": 720,
+    "fullscreen": false
+  },
+  "jvm_args": [],
+  "game_args": [],
+  "env": {},
+  "notes": "Czysta instalacja bez modów — punkt odniesienia przy testach."
+}

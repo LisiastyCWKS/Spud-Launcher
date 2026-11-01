@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "theme": "dark",
+  "locale": "pl-PL",
+  "concurrency": 8,
+  "default_memory_mb": 4096,
+  "default_java": null,
+  "close_on_launch": false,
+  "show_snapshots": false,
+  "mojang_meta": "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
+  "modrinth_api": "https://api.modrinth.com/v2",
+  "curseforge_api_key": null
+}

@@ -28,11 +28,14 @@ launcher-core = { path = "../crates/launcher-core" }
 launcher-net = { path = "../crates/launcher-net" }
 launcher-auth = { path = "../crates/launcher-auth" }
 launcher-modrinth = { path = "../crates/launcher-modrinth" }
+launcher-ai = { path = "../crates/launcher-ai" }
+launcher-sync = { path = "../crates/launcher-sync" }
 
 sha2.workspace = true
 hex.workspace = true
 zip.workspace = true
 tempfile.workspace = true
+keyring.workspace = true
 
 [features]
 # Bez tego Tauri traktuje build jako deweloperski i ładuje devUrl zamiast ui/dist.

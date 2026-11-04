@@ -42,7 +42,14 @@ pub async fn instance_delete(app: AppHandle, id: String) -> Result<(), String> {
         let state = handle.state::<AppState>();
         state.running.stop(&id)?;
         let config = InstanceConfig::load(&state.paths, &id).map_err(|e| e.to_string())?;
-        config.delete(&state.paths).map_err(|e| e.to_string())
+        config.delete(&state.paths).map_err(|e| e.to_string())?;
+        // The instance is gone; drop its store registry so the next GC can
+        // reclaim any blob only it was keeping alive.
+        let store = launcher_core::modstore::ModStore::new(&state.paths);
+        if let Err(error) = store.forget_instance(&state.paths, &id) {
+            tracing::debug!(%error, "mod store registry left behind");
+        }
+        Ok(())
     })
     .await
     .map_err(|e| format!("delete task failed: {e}"))?

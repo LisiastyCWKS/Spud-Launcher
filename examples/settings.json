@@ -6,8 +6,12 @@
   "default_memory_mb": 4096,
   "default_java": null,
   "close_on_launch": false,
+  "restore_on_exit": true,
   "show_snapshots": false,
   "mojang_meta": "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
   "modrinth_api": "https://api.modrinth.com/v2",
-  "curseforge_api_key": null
+  "curseforge_api_key": null,
+  "sync_backend": "folder",
+  "sync_folder": null,
+  "sync_keep": 5
 }

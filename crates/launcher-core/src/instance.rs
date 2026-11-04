@@ -133,6 +133,18 @@ impl Default for WindowSettings {
     }
 }
 
+/// Record of the last automatic hardware tuning, so the UI can say "tuned for
+/// this machine on <date>" and can offer a re-run when the machine changed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TuningState {
+    pub applied_at: DateTime<Utc>,
+    pub cpu_threads: u32,
+    pub memory_total_mb: u64,
+    pub modded: bool,
+    pub java_major: u32,
+    pub max_memory_mb: u32,
+}
+
 /// One isolated game installation. Serialized as `<instance>/instance.json`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InstanceConfig {
@@ -164,6 +176,10 @@ pub struct InstanceConfig {
     pub env: BTreeMap<String, String>,
     #[serde(default)]
     pub notes: String,
+    /// Filled by the hardware tuner; absent for instances tuned by hand or
+    /// created before the tuner existed. Additive, so schema 1 files still load.
+    #[serde(default)]
+    pub tuning: Option<TuningState>,
 }
 
 fn schema_version() -> u32 {
@@ -248,6 +264,7 @@ impl InstanceConfig {
             game_args: Vec::new(),
             env: BTreeMap::new(),
             notes: String::new(),
+            tuning: None,
         };
 
         config.save(paths)?;

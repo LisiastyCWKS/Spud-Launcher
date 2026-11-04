@@ -5,6 +5,31 @@ use serde::{Deserialize, Serialize};
 use crate::error::{read_json, write_json_atomic, Result};
 use crate::paths::LauncherPaths;
 
+/// Which wire format the optional crash explainer speaks.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AiProvider {
+    /// OpenAI-compatible `/chat/completions` — OpenAI, Ollama, LM Studio,
+    /// OpenRouter, Groq and most self-hosted gateways.
+    #[default]
+    OpenAi,
+    /// Anthropic `/v1/messages`.
+    Anthropic,
+}
+
+/// Where instance backups are stored.
+///
+/// Only `folder` is implemented: a local directory, a mounted drive or any
+/// folder another tool already syncs. S3 and Dropbox plug into the same
+/// six-method `launcher_sync::SyncProvider` trait and are documented as the
+/// next step rather than half-built here.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SyncBackend {
+    #[default]
+    Folder,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Theme {
@@ -54,6 +79,22 @@ pub struct LauncherSettings {
     /// Discord application id the presence is published under. Empty disables
     /// the connection even when `discord_rpc` is on.
     pub discord_client_id: Option<String>,
+    /// Crash-log explanations through an LLM. Off by default: it is the only
+    /// feature that sends anything about the machine to a third party.
+    pub ai_enabled: bool,
+    pub ai_provider: AiProvider,
+    /// Base URL, e.g. `https://api.openai.com/v1` or `http://localhost:11434/v1`.
+    pub ai_endpoint: String,
+    pub ai_model: String,
+    /// Prompt cap. The log is already trimmed and redacted; this is the second
+    /// gate before anything is sent.
+    pub ai_max_log_kb: u32,
+    /// Instance backups. A remote is only reachable when the folder exists; an
+    /// empty path means "cloud sync is off".
+    pub sync_backend: SyncBackend,
+    pub sync_folder: Option<PathBuf>,
+    /// How many snapshots per instance survive a push. 1–50.
+    pub sync_keep: u32,
 }
 
 impl Default for LauncherSettings {
@@ -76,6 +117,14 @@ impl Default for LauncherSettings {
             auto_install_java: true,
             discord_rpc: true,
             discord_client_id: None,
+            ai_enabled: false,
+            ai_provider: AiProvider::OpenAi,
+            ai_endpoint: "https://api.openai.com/v1".to_string(),
+            ai_model: "gpt-4o-mini".to_string(),
+            ai_max_log_kb: 64,
+            sync_backend: SyncBackend::Folder,
+            sync_folder: None,
+            sync_keep: 5,
         }
     }
 }
@@ -121,6 +170,24 @@ impl LauncherSettings {
             .map(str::trim)
             .filter(|value| value.chars().all(|c| c.is_ascii_digit()) && !value.is_empty())
             .map(str::to_string);
+        // AI settings are optional; a blank endpoint or model would only fail at
+        // request time, so fall back to the documented defaults.
+        self.ai_endpoint = self.ai_endpoint.trim().trim_end_matches('/').to_string();
+        if self.ai_endpoint.is_empty() {
+            self.ai_endpoint = Self::default().ai_endpoint;
+        }
+        self.ai_model = self.ai_model.trim().to_string();
+        if self.ai_model.is_empty() {
+            self.ai_model = Self::default().ai_model;
+        }
+        self.ai_max_log_kb = self.ai_max_log_kb.clamp(4, 512);
+        // An empty path is "off", not "the current directory"; retention has to
+        // keep at least one snapshot or a push would delete what it just wrote.
+        self.sync_folder = self
+            .sync_folder
+            .take()
+            .filter(|path| !path.as_os_str().is_empty());
+        self.sync_keep = self.sync_keep.clamp(1, 50);
         self.schema = 1;
     }
 }

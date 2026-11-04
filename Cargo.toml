@@ -5,6 +5,8 @@ members = [
     "crates/launcher-net",
     "crates/launcher-auth",
     "crates/launcher-modrinth",
+    "crates/launcher-ai",
+    "crates/launcher-sync",
     "src-tauri",
 ]
 

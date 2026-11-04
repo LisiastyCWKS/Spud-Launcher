@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { api, onInstallProgress } from "./lib/api";
 import type {
@@ -22,6 +22,8 @@ import { DiagnosticsPanel } from "./components/DiagnosticsPanel";
 import { FriendsPanel } from "./components/FriendsPanel";
 import { ImportPanel } from "./components/ImportPanel";
 import { ProgressToast } from "./components/ProgressToast";
+import { PluginsView } from "./components/PluginsView";
+import { emitPluginEvent, reloadPlugins } from "./lib/plugins";
 import { Icon } from "./components/Icon";
 
 export default function App() {
@@ -47,6 +49,7 @@ export default function App() {
     try {
       const list = await api.instances.list();
       setInstances(list);
+      emitPluginEvent("instances:changed", { count: list.length });
       setSelectedId((current) =>
         current && list.some((entry) => entry.id === current) ? current : null,
       );
@@ -72,6 +75,12 @@ export default function App() {
   useEffect(() => {
     void refreshAuthStatus();
   }, [refreshAuthStatus]);
+
+  // Plugins boot once, after the first paint, so a slow or broken plugin never
+  // delays the launcher window showing up.
+  useEffect(() => {
+    void reloadPlugins().catch((cause) => setError(String(cause)));
+  }, []);
 
   useEffect(() => {
     api.window
@@ -168,6 +177,29 @@ export default function App() {
 
   const activeAccount = accounts?.accounts.find((entry) => entry.active) ?? null;
 
+  // Plugins hear about game starts and stops by watching the same map the UI
+  // renders, so a crash is reported the same way a clean exit is.
+  const previousRunning = useRef<string[]>([]);
+  useEffect(() => {
+    const current = Object.keys(running);
+    const before = previousRunning.current;
+    for (const id of current.filter((id) => !before.includes(id))) {
+      emitPluginEvent("game:started", { instanceId: id, game: running[id] });
+    }
+    for (const id of before.filter((id) => !current.includes(id))) {
+      emitPluginEvent("game:stopped", { instanceId: id });
+    }
+    previousRunning.current = current;
+  }, [running]);
+
+  useEffect(() => {
+    emitPluginEvent("theme:changed", { theme, resolved });
+  }, [theme, resolved]);
+
+  useEffect(() => {
+    emitPluginEvent("view:changed", { view });
+  }, [view]);
+
   const openInstance = (id: string) => {
     setSelectedId(id);
     setView("instances");
@@ -196,6 +228,8 @@ export default function App() {
         };
       case "diagnostics":
         return { title: "Diagnostics", sub: "Live console and the crash logs left by the last runs" };
+      case "plugins":
+        return { title: "Plugins", sub: "Extensions you installed and what they added to the launcher" };
       case "accounts":
         return { title: "Accounts", sub: "Microsoft sign-in or a local offline nickname" };
       case "settings":
@@ -319,6 +353,8 @@ export default function App() {
             {view === "diagnostics" ? (
               <DiagnosticsPanel instances={instances} initialId={diagnosticsTarget} />
             ) : null}
+
+            {view === "plugins" ? <PluginsView /> : null}
 
             {view === "friends" ? (
               <FriendsPanel

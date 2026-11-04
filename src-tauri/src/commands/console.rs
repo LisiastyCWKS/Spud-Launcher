@@ -243,7 +243,7 @@ fn read_from(path: &std::path::Path, offset: u64, cap: u64) -> std::io::Result<(
     Ok((String::from_utf8_lossy(&buffer).into_owned(), read as u64))
 }
 
-fn read_capped(path: &std::path::Path, cap: u64) -> Result<String, String> {
+pub(crate) fn read_capped(path: &std::path::Path, cap: u64) -> Result<String, String> {
     let metadata = std::fs::metadata(path).map_err(|e| format!("cannot open the log: {e}"))?;
     if metadata.len() <= cap {
         return std::fs::read_to_string(path).map_err(|e| format!("cannot read the log: {e}"));

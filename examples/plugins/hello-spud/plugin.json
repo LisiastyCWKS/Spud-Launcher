@@ -1,0 +1,10 @@
+{
+  "id": "hello-spud",
+  "name": "Hello Spud",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Reference plugin: adds a panel, remembers a counter, and reacts to launcher events.",
+  "author": "Spud Launcher",
+  "main": "main.js",
+  "hooks": ["launcher:ready", "game:started", "game:stopped", "instances:changed"]
+}

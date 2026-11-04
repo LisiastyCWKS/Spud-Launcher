@@ -11,6 +11,7 @@ export type View =
   | "import"
   | "friends"
   | "diagnostics"
+  | "plugins"
   | "accounts"
   | "settings";
 
@@ -29,6 +30,7 @@ const LIBRARY: Array<{ id: View; label: string; icon: NavIcon }> = [
   { id: "import", label: "Import", icon: "package" },
   { id: "friends", label: "Friends", icon: "copy" },
   { id: "diagnostics", label: "Diagnostics", icon: "warning" },
+  { id: "plugins", label: "Plugins", icon: "settings" },
 ];
 
 const SYSTEM: Array<{ id: View; label: string; icon: NavIcon }> = [

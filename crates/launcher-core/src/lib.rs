@@ -10,16 +10,20 @@
 //! Everything else in the workspace depends on these types, never the reverse.
 
 pub mod error;
+pub mod hardware;
 pub mod instance;
 pub mod java;
 pub mod launch;
+pub mod modstore;
 pub mod paths;
+pub mod plugin;
 pub mod settings;
 pub mod version;
 
 pub use error::{CoreError, Result};
 pub use instance::{
-    GameSpec, InstanceConfig, JavaMode, JavaSettings, LoaderKind, NewInstance, WindowSettings,
+    GameSpec, InstanceConfig, JavaMode, JavaSettings, LoaderKind, NewInstance, TuningState,
+    WindowSettings,
 };
 pub use paths::LauncherPaths;
-pub use settings::{LauncherSettings, Theme};
+pub use settings::{AiProvider, LauncherSettings, SyncBackend, Theme};

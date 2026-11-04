@@ -338,7 +338,7 @@ pub fn instance_required_java(
     required_java_major(&state.paths, &mc_version)
 }
 
-fn required_java_major(paths: &launcher_core::LauncherPaths, mc_version: &str) -> u32 {
+pub(crate) fn required_java_major(paths: &launcher_core::LauncherPaths, mc_version: &str) -> u32 {
     load_version_json(paths, mc_version)
         .ok()
         .and_then(|version| version.java_version.map(|j| j.major_version))

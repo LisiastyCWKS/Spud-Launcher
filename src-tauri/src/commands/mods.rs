@@ -229,11 +229,25 @@ async fn install_versions(
         .map_err(|e| e.to_string())?;
 
     let mut manifest = InstalledMods::load(&game_dir).map_err(|e| e.to_string())?;
+    let store = launcher_core::modstore::ModStore::new(&state.paths);
+    let store_dir = match project_type {
+        "resourcepack" => "resourcepacks",
+        "shader" => "shaderpacks",
+        _ => "mods",
+    };
     for (version, file_name) in planned {
         let title = titles
             .get(&version.project_id)
             .cloned()
             .unwrap_or_else(|| dep_title(&version));
+        // Route the freshly written jar through the shared store. A jar that is
+        // already there becomes a hard link instead of a second copy on disk;
+        // a failure here must not fail the install, so it is only logged.
+        if let Err(error) =
+            store.adopt_file(&state.paths, &config.id, store_dir, &file_name)
+        {
+            tracing::debug!(%error, file = %file_name, "mod store adoption skipped");
+        }
         manifest.upsert(InstalledMod {
             project_id: version.project_id.clone(),
             version_id: version.id.clone(),
@@ -423,6 +437,12 @@ pub fn mods_remove(
                 .map_err(|e| format!("cannot delete {}: {e}", path.display()))?;
         }
         manifest.save(&game_dir).map_err(|e| e.to_string())?;
+        // The store keeps the blob only while some instance still names it; a
+        // full GC is what actually frees the bytes, this just drops the record.
+        let store = launcher_core::modstore::ModStore::new(&state.paths);
+        if let Err(error) = store.forget_named(&state.paths, &config.id, &entry.file_name) {
+            tracing::debug!(%error, "mod store record not cleared");
+        }
     }
     Ok(manifest.mods)
 }
@@ -519,6 +539,13 @@ pub async fn modpack_install(
     )
     .await
     .map_err(|e| e.to_string())?;
+
+    // Packs routinely repeat the same library jar across mods; fold them into
+    // the shared store so a 60-mod pack does not cost 60 copies of everything.
+    let store = launcher_core::modstore::ModStore::new(&state.paths);
+    if let Err(error) = store.dedupe_instance(&state.paths, &created_id) {
+        tracing::warn!(%error, "mod store sweep after pack install failed");
+    }
 
     let instance = InstanceConfig::load(&state.paths, &created_id).map_err(|e| e.to_string())?;
     Ok(ModpackInstallResult { instance, pack })

@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import { bytes, classNames, copyText, relativeTime } from "../lib/format";
 import type { InstanceSummary, LogFileInfo } from "../lib/types";
 import { ConsolePanel } from "./ConsolePanel";
+import { CrashAnalysisPanel } from "./CrashAnalysisPanel";
 import { Icon } from "./Icon";
 import { Modal } from "./Modal";
 
@@ -26,6 +27,7 @@ export function DiagnosticsPanel({
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
+  const [analysing, setAnalysing] = useState<LogFileInfo | null>(null);
 
   useEffect(() => {
     if (!selected && instances.length > 0) setSelected(instances[0].id);
@@ -137,6 +139,14 @@ export function DiagnosticsPanel({
                     <button
                       type="button"
                       className="icon-btn"
+                      title="Analyse this crash report"
+                      onClick={() => setAnalysing(entry)}
+                    >
+                      <Icon name="search" size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-btn"
                       title="Copy the whole report"
                       onClick={() => void copyFile(entry)}
                     >
@@ -165,6 +175,14 @@ export function DiagnosticsPanel({
                     <button
                       type="button"
                       className="icon-btn"
+                      title="Analyse this log"
+                      onClick={() => setAnalysing(entry)}
+                    >
+                      <Icon name="search" size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-btn"
                       title="Copy this log"
                       onClick={() => void copyFile(entry)}
                     >
@@ -176,6 +194,15 @@ export function DiagnosticsPanel({
             )}
           </div>
         </div>
+      ) : null}
+
+      {analysing && selected ? (
+        <CrashAnalysisPanel
+          instanceId={selected}
+          file={analysing}
+          onClose={() => setAnalysing(null)}
+          onError={setError}
+        />
       ) : null}
 
       {viewing ? (

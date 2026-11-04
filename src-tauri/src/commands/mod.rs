@@ -1,22 +1,32 @@
 mod accounts;
+mod ai;
 pub mod console;
 pub mod friends;
 mod game;
 mod instances;
 mod launchers;
 mod mods;
+mod plugins;
+mod store;
+mod sync;
 mod system;
+mod tuning;
 pub mod transfer;
 
 pub use accounts::*;
+pub use ai::*;
 pub use console::*;
 pub use friends::*;
 pub use game::*;
 pub use instances::*;
 pub use launchers::*;
 pub use mods::*;
+pub use plugins::*;
+pub use store::*;
+pub use sync::*;
 pub use system::*;
 pub use transfer::*;
+pub use tuning::*;
 
 use tauri::AppHandle;
 use tokio::sync::mpsc::{self, UnboundedSender};

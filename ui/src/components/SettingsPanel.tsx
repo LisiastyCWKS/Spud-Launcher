@@ -4,6 +4,10 @@ import { classNames, copyText } from "../lib/format";
 import type { JavaRuntime, LauncherSettings, Theme } from "../lib/types";
 import { Icon } from "./Icon";
 import { AccentPicker } from "./AccentPicker";
+import { StoragePanel } from "./StoragePanel";
+import { PluginsPanel } from "./PluginsPanel";
+import { AiPanel } from "./AiPanel";
+import { SyncPanel } from "./SyncPanel";
 
 const THEMES: Array<{ id: Theme; label: string }> = [
   { id: "system", label: "System" },
@@ -328,6 +332,43 @@ export function SettingsPanel({
             {javaNote ? <span className="field-hint">{javaNote}</span> : null}
           </div>
         </div>
+      </section>
+
+      <section className="settings-section">
+        <h2 className="settings-title">Mod storage</h2>
+        <p className="settings-sub">
+          Every unique jar is kept once and hard-linked into the instances that use it. Cleaning up
+          only touches blobs with no remaining references.
+        </p>
+        <StoragePanel onError={setError} />
+      </section>
+
+      <section className="settings-section">
+        <h2 className="settings-title">Plugins</h2>
+        <p className="settings-sub">
+          Small JavaScript extensions kept in the launcher data folder. They can add panels and
+          react to launcher events; nothing is enabled until you say so.
+        </p>
+        <PluginsPanel onError={setError} />
+      </section>
+
+      <section className="settings-section">
+        <h2 className="settings-title">AI crash analysis</h2>
+        <p className="settings-sub">
+          Optional written explanations for crash reports, next to the built-in offline rules. The
+          provider is your choice; the API key lives in the OS keyring and no report is sent
+          without a per-request confirmation.
+        </p>
+        {draft ? <AiPanel settings={draft} patch={patch} onError={setError} /> : null}
+      </section>
+
+      <section className="settings-section">
+        <h2 className="settings-title">Cloud sync</h2>
+        <p className="settings-sub">
+          Full instance backups — worlds, configs, hand-installed jars — written to a folder you
+          control. Restores arrive as a new instance, so two machines never overwrite each other.
+        </p>
+        {draft ? <SyncPanel settings={draft} patch={patch} onError={setError} /> : null}
       </section>
 
       <section className="settings-section">

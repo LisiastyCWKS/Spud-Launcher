@@ -11,6 +11,7 @@ import type {
 import { Icon } from "./Icon";
 import { ModrinthPanel } from "./ModrinthPanel";
 import { ConsolePanel } from "./ConsolePanel";
+import { PerformanceCard } from "./PerformanceCard";
 import type { RunningMap } from "../hooks/useRunning";
 
 type Tab = "overview" | "mods" | "console" | "settings";
@@ -282,7 +283,13 @@ export function InstanceDetail({
       {error ? <div className="error" style={{ marginBottom: 14 }}>{error}</div> : null}
 
       {tab === "overview" ? (
-        <OverviewTab config={config} modCount={mods.length} ready={ready} />
+        <OverviewTab
+          config={config}
+          modCount={mods.length}
+          ready={ready}
+          onApplied={setConfig}
+          onError={setError}
+        />
       ) : null}
 
       {tab === "mods" ? (
@@ -320,10 +327,14 @@ function OverviewTab({
   config,
   modCount,
   ready,
+  onApplied,
+  onError,
 }: {
   config: InstanceConfig;
   modCount: number;
   ready: boolean;
+  onApplied: (config: InstanceConfig) => void;
+  onError: (message: string | null) => void;
 }) {
   const folder = useMemo(() => config.id, [config.id]);
 
@@ -361,6 +372,8 @@ function OverviewTab({
       </div>
 
       <div className="stack">
+        <PerformanceCard config={config} onApplied={onApplied} onError={onError} />
+
         <div className="card panel">
           <h3 className="panel-title">Files</h3>
           <p className="muted" style={{ fontSize: 12.5, margin: "0 0 10px" }}>

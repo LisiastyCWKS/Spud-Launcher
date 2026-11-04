@@ -3,13 +3,18 @@ import { listen } from "@tauri-apps/api/event";
 import type {
   AccountsView,
   AccountView,
+  AiStatus,
   AuthStatus,
+  CrashAnalysis,
+  DedupeReport,
   DetectedInstance,
   DeviceCode,
   DownloadEvent,
   ExportResult,
   FriendView,
   FriendsConfig,
+  GcReport,
+  HardwareProfile,
   ImportOutcome,
   ImportResult,
   InstallResult,
@@ -33,11 +38,19 @@ import type {
   NewInstance,
   OptimizationResult,
   PresenceFile,
+  PluginEntry,
   RunningGame,
   ScanResult,
   SearchQuery,
   SharedArchive,
+  StoreStats,
   StopResult,
+  SyncManifest,
+  SyncPullResult,
+  SyncPushResult,
+  SyncRemoteView,
+  SyncStatus,
+  TuningPreview,
   VersionSummary,
   WindowState,
 } from "./types";
@@ -147,6 +160,49 @@ export const api = {
       invoke<OptimizationResult>("optimization_install", { instanceId }),
   },
   root: () => invoke<string>("data_root"),
+  hardware: {
+    profile: () => invoke<HardwareProfile>("hardware_profile"),
+  },
+  tuning: {
+    preview: (instanceId: string) =>
+      invoke<TuningPreview>("tuning_preview", { instanceId }),
+    apply: (instanceId: string) =>
+      invoke<InstanceConfig>("tuning_apply", { instanceId }),
+  },
+  store: {
+    stats: () => invoke<StoreStats>("store_stats"),
+    dedupe: (instanceId: string) =>
+      invoke<DedupeReport>("store_dedupe", { instanceId }),
+    gc: (dryRun: boolean) => invoke<GcReport>("store_gc", { dryRun }),
+    forget: (instanceId: string, fileName: string) =>
+      invoke<void>("store_forget", { instanceId, fileName }),
+  },
+  plugins: {
+    list: () => invoke<PluginEntry[]>("plugins_list"),
+    setEnabled: (id: string, enabled: boolean) =>
+      invoke<PluginEntry[]>("plugins_set_enabled", { id, enabled }),
+    openFolder: () => invoke<string>("plugins_open_folder"),
+  },
+  ai: {
+    status: () => invoke<AiStatus>("ai_status"),
+    setKey: (key: string) => invoke<AiStatus>("ai_set_key", { key }),
+    clearKey: () => invoke<AiStatus>("ai_clear_key"),
+    /** `consent: false` returns the offline diagnoses plus a preview only. */
+    analyze: (instanceId: string, name: string, consent: boolean) =>
+      invoke<CrashAnalysis>("ai_analyze_crash", { instanceId, name, consent }),
+  },
+  sync: {
+    status: () => invoke<SyncStatus>("sync_status"),
+    remotes: () => invoke<SyncRemoteView[]>("sync_remotes"),
+    push: (instanceId: string, note?: string) =>
+      invoke<SyncPushResult>("sync_push", { instanceId, note: note ?? null }),
+    /** Restores as a *new* instance; nothing local is overwritten. */
+    pull: (instanceId: string, file: string) =>
+      invoke<SyncPullResult>("sync_pull", { instanceId, file }),
+    forget: (instanceId: string, file: string) =>
+      invoke<SyncManifest>("sync_forget_snapshot", { instanceId, file }),
+    openFolder: () => invoke<string>("sync_open_folder"),
+  },
   window: {
     state: () => invoke<WindowState>("window_state"),
     setFullscreen: (fullscreen: boolean) =>

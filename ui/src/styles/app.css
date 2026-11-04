@@ -967,6 +967,20 @@
   color: var(--warning);
 }
 
+/* ---------- cloud sync ---------- */
+
+/* One remote instance: its snapshots are rows, not cards, so a long list of
+   backups stays scannable inside the settings column. */
+.sync-remote {
+  border-top: 1px solid var(--border);
+  padding: 10px 0;
+}
+
+.sync-remote:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
 /* ---------- accounts ---------- */
 
 .account-row {
@@ -2243,4 +2257,110 @@
     opacity: 0;
     transform: translateY(6px) scale(0.98);
   }
+}
+
+/* tuning card: notes and the collapsible flag list */
+.tuning-notes {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.tuning-notes li + li {
+  margin-top: 3px;
+}
+
+.tuning-flags {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  padding: 0 10px;
+}
+
+.tuning-flags > summary {
+  cursor: pointer;
+  padding: 7px 0;
+  font-size: 12px;
+  color: var(--muted);
+  list-style: none;
+}
+
+.tuning-flags > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tuning-flags > summary::before {
+  content: "+";
+  display: inline-block;
+  width: 12px;
+  color: var(--accent);
+}
+
+.tuning-flags[open] > summary::before {
+  content: "−";
+}
+
+.tuning-flags-body {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  max-height: 220px;
+  overflow: auto;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--text-soft);
+  white-space: pre;
+}
+
+/* plugins: manager rows, bridge panels and plugin output */
+.plugin-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.plugin-list-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.plugin-list-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.plugin-panel-body {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.plugin-panel-body h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.plugin-panel-body p {
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+
+.plugin-notices {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--text-soft);
+  line-height: 1.5;
 }

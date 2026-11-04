@@ -8,7 +8,7 @@ Minimalistyczny, szybki launcher Minecrafta napisany w Rust i Tauri v2 — inspi
 
 Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut w tle, brak dodatkowych procesów podczas gry i przewidywalny, czytelny kod podzielony na warstwy.
 
-> **Status weryfikacji:** frontend (`ui`) przechodzi `tsc --noEmit` i `vite build`. Backend kompiluje się czysto (`cargo check --workspace`, `cargo build --workspace` bez błędów i ostrzeżeń na Windows 11, Rust 1.99.1), a `cargo test --workspace` przechodzi 37 testów. Sprawdzone end-to-end na żywej sieci i na zbudowanym exe: konto offline (nick → UUID → start legacy), `optimization_install` na Fabric 1.21.1 (10 plików), start gry — Minecraft 26.3 na Fabric 0.20.1 wczytał 64 mody i doszedł do menu — oraz nowy cykl zarządzania procesem: Play zmienia się w **Stop** (`Running · pid`), druga kopia tej samej instancji jest odrzucana, dwie różne instancje startują równolegle, a Stop zamyka grę przez `WM_CLOSE` w 0,65 s i nie rusza drugiej. Usuwanie instancji przechodzi przez `instance_delete`; działającą grę komenda zatrzymuje przed skasowaniem katalogu. Import z innego launchera sprawdzony na profilu Modrinth App („Fabric 26.3”, 32 mody, 55,8 MB): skan odczytał wersję i loader z `logs/latest.log`, bo Modrinth App nie zapisuje żadnego pliku metadanych, a import utworzył instancję z modami, configami, resource packami, shaderami, światami i `options.txt`. Eksport i import sprawdzone w obie strony na tej samej instancji: `.zip` (96 plików, 27,3 MB) wrócił jako instancja z 32 modami, 28 configami, 31 plikami światów, `options.txt` i `servers.dat`, bez `session.lock`; `.mrpack` (27,3 MB) wrócił z metadanymi odczytanymi wyłącznie z `modrinth.index.json`, a paczka z linkiem CDN do Sodium pobrała jar i zgodziła się z SHA-1 co do znaku. Logowanie Microsoft sprawdzone do granicy serwera AAD: `client_id` z Settings trafia do żądania, a zły identyfikator wraca jako `AADSTS700038`, nie `MissingClientId`. Nieprzetestowane pozostają: instalacja Forge/NeoForge, pełne logowanie realnym `client_id`, pobranie Javy 8 przez Adoptium i Rich Presence na prawdziwym `application id`. Stare JSON-y z regułami `disallow` (alpha 1.0) parsują się i instalują poprawnie. Interfejs użytkownika jest na razie w języku angielskim.
+> **Status weryfikacji:** frontend (`ui`) przechodzi `tsc --noEmit` i `vite build`. Backend kompiluje się czysto (`cargo check --workspace`, `cargo build --workspace` bez błędów i ostrzeżeń na Windows 11, Rust 1.99.1), a `cargo test --workspace` przechodzi 83 testy. Sprawdzone end-to-end na żywej sieci i na zbudowanym exe: konto offline (nick → UUID → start legacy), `optimization_install` na Fabric 1.21.1 (10 plików), start gry — Minecraft 26.3 na Fabric 0.20.1 wczytał 64 mody i doszedł do menu — oraz nowy cykl zarządzania procesem: Play zmienia się w **Stop** (`Running · pid`), druga kopia tej samej instancji jest odrzucana, dwie różne instancje startują równolegle, a Stop zamyka grę przez `WM_CLOSE` w 0,65 s i nie rusza drugiej. Usuwanie instancji przechodzi przez `instance_delete`; działającą grę komenda zatrzymuje przed skasowaniem katalogu. Import z innego launchera sprawdzony na profilu Modrinth App („Fabric 26.3”, 32 mody, 55,8 MB): skan odczytał wersję i loader z `logs/latest.log`, bo Modrinth App nie zapisuje żadnego pliku metadanych, a import utworzył instancję z modami, configami, resource packami, shaderami, światami i `options.txt`. Eksport i import sprawdzone w obie strony na tej samej instancji: `.zip` (96 plików, 27,3 MB) wrócił jako instancja z 32 modami, 28 configami, 31 plikami światów, `options.txt` i `servers.dat`, bez `session.lock`; `.mrpack` (27,3 MB) wrócił z metadanymi odczytanymi wyłącznie z `modrinth.index.json`, a paczka z linkiem CDN do Sodium pobrała jar i zgodziła się z SHA-1 co do znaku. Logowanie Microsoft sprawdzone do granicy serwera AAD: `client_id` z Settings trafia do żądania, a zły identyfikator wraca jako `AADSTS700038`, nie `MissingClientId`. Nieprzetestowane pozostają: instalacja Forge/NeoForge, pełne logowanie realnym `client_id`, pobranie Javy 8 przez Adoptium i Rich Presence na prawdziwym `application id`. Stare JSON-y z regułami `disallow` (alpha 1.0) parsują się i instalują poprawnie. Interfejs użytkownika jest na razie w języku angielskim.
 
 ---
 
@@ -28,6 +28,11 @@ Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut 
 - [Eksport i import instancji](#eksport-i-import-instancji)
 - [Import z innych launcherów](#import-z-innych-launcherów)
 - [Znajomi](#znajomi)
+- [Wtyczki](#wtyczki)
+- [Magazyn modów](#magazyn-modów)
+- [Strojenie sprzętowe](#strojenie-sprzętowe)
+- [Analiza crashy (AI)](#analiza-crashy-ai)
+- [Synchronizacja w chmurze](#synchronizacja-w-chmurze)
 - [Discord Rich Presence](#discord-rich-presence)
 - [Dane launchera](#dane-launchera)
 - [Format `instance.json`](#format-instancejson)
@@ -101,6 +106,13 @@ Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut 
 - **Import** przyjmuje oba formaty. Archiwum jest najpierw rozpakowywane do katalogu tymczasowego, każda ścieżka jest sprawdzana pod kątem wyjścia poza katalog docelowy (`safe_join`), a `session.lock` jest pomijany — import nie może podmienić plików poza instancją ani przenieść cudzego `session.lock`.
 - Import `.mrpack` dociąga brakujące jary z listy `files` indeksu i weryfikuje każdy SHA-1, więc paczka z linkami CDN odtwarza się bez ręcznego klikania w Modrinth.
 - Import tworzy nową, odizolowaną instancję. Pliki gry dociąga się potem zwykłym **Install** — archiwum nie zawiera client jara ani bibliotek.
+
+### Synchronizacja
+
+- **Backup i restore instancji do folderu** (dysk, NAS, katalog OneDrive/Syncthing). Snapshot to pełny `.zip` z eksportu — światy, configi i ręcznie wgrane jary włącznie.
+- **Restore nigdy nie nadpisuje** lokalnej instancji: archiwum przechodzi przez import i powstaje nowa instancja.
+- **Deduplikacja i weryfikacja:** identyczne bajty nie są wysyłane drugi raz, a pobrany plik jest sprawdzany SHA-256 przed importem.
+- **`SyncProvider` jako API** — `FolderProvider` jest implementacją referencyjną; S3/Dropbox wchodzą w te same sześć metod.
 
 ### Interfejs
 
@@ -219,6 +231,14 @@ spud-launcher/
 │       └── src/
 │           ├── client.rs          # search, project, versions, zależności
 │           └── installed.rs       # manifest .spud/mods.json
+│   ├── launcher-ai/
+│   │   └── src/                   # heurystyki crashy, redakcja, klient OpenAI/Anthropic
+│   └── launcher-sync/
+│       └── src/
+│           ├── provider.rs        # SyncProvider + FolderProvider, safe_key, sha256
+│           ├── manifest.rs        # manifest per instancja, snapshoty, retencja
+│           ├── state.rs           # lokalny stan: ostatni push/pull, newer-on-remote
+│           └── lib.rs             # push, pull, remotes, remove_snapshot
 ├── src-tauri/
 │   ├── Cargo.toml
 │   ├── build.rs
@@ -241,7 +261,8 @@ spud-launcher/
 │           ├── console.rs         # tailer logów + game://log
 │           ├── transfer.rs        # eksport/import .zip i .mrpack
 │           ├── launchers.rs       # wykrywanie i import z innych launcherów
-│           └── friends.rs         # presence w folderze współdzielonym
+│           ├── friends.rs         # presence w folderze współdzielonym
+│           └── sync.rs            # backup/restore instancji na zdalny nośnik
 └── ui/
     ├── package.json
     ├── vite.config.ts
@@ -410,7 +431,7 @@ Certyfikat OV/EV (Certum, Sectigo, SSL.com) jest płatny; EV zdejmuje ostrzeżen
 cargo test
 ```
 
-Testy obejmują m.in. `slugify`, odrzucanie trawersji w `safe_join`, parsowanie wersji Javy, wybór runtime i reguły wersji.
+Testy obejmują m.in. `slugify`, odrzucanie trawersji w `safe_join`, parsowanie wersji Javy, wybór runtime i reguły wersji. Nowe warstwy mają własne zestawy: magazyn modów (linki, GC, fallback na kopię), strojenie sprzętowe (dobór heapu i flag), wtyczki (walidacja manifestu, izolacja błędów), analiza crashy AI (heurystyki, redakcja, walidacja konfiguracji) oraz synchronizacja (push/pull, deduplikacja, retencja, weryfikacja hasha, `safe_key`). Razem 83 testy w workspace.
 
 ---
 
@@ -637,6 +658,73 @@ Konfiguracja lokalna leży w `<root>/friends.json` (`nick`, `sync_folder`, `frie
 
 ---
 
+## Wtyczki
+
+Wtyczka to folder w `<root>/plugins/<id>/` z manifestem `plugin.json` i skryptem wejściowym (`main.js`). Wtyczki dodają panele na stronie **Plugins** i reagują na eventy launchera (`game:started`, `game:stopped`, `instances:changed`, `theme:changed`, `view:changed`).
+
+Są **domyślnie wyłączone** — włącza się je w **Settings → Plugins**. Kod działa w webview launchera, więc włączona wtyczka to kod zaufany; źródło jest przekazywane do UI tylko po włączeniu, a manifest przechodzi walidację (id = nazwa folderu, `main` bez `..`, limit 512 KiB, wersja API).
+
+Izolacja błędów: wyjątek w entry pointcie oznacza wtyczkę jako `failed`; wyjątki w handlerach i panelach są liczone, a po 5 błędach wtyczka jest zatrzymywana (panele znikają, launcher działa dalej). Ścieżka `main` nie może wyjść z folderu wtyczki.
+
+Pełne API (`Spud.ui.panel`, `Spud.events.on`, `Spud.storage`, `Spud.log`, `Spud.ui.notify`), tabela eventów, ograniczenia i uzasadnienie wyboru JS zamiast natywnych bibliotek: [`docs/plugins.md`](docs/plugins.md). Działający przykład: [`examples/plugins/hello-spud/`](examples/plugins/hello-spud/).
+
+---
+
+## Magazyn modów
+
+Każdy unikalny plik (SHA-256) jest trzymany raz w `<root>/modstore/blobs/sha256/…` i twardo linkowany do instancji. Gra, eksport instancji i pliki `.mrpack` widzą zwykłe jary — deduplikacja jest niewidoczna dla czytelników.
+
+- Instalacja z Modrintha i import `.mrpack` przechodzą przez magazyn automatycznie.
+- Gdy hard link jest niemożliwy (inny dysk, system plików bez linków), magazyn robi kopię i zapisuje `linked: false`, żeby GC nigdy nie usunął bloba, od którego zależy kopia.
+- Rejestr per-instancja `<gra>/.spud/store.json` jest źródłem prawdy dla GC — nie licznik linków systemu.
+- **Settings → Mod storage**: rozmiar magazynu, „Deduplicate all instances", „Check for unused blobs" (dry-run), a usuwanie dopiero po nim.
+
+---
+
+## Strojenie sprzętowe
+
+Karta **Performance** w przeglądzie instancji skanuje CPU, RAM i GPU (kod platformowy, bez dodatkowych zależności: Windows API, `/proc` na Linuksie, `sysctl` na macOS) i proponuje heap oraz flagi JVM.
+
+- Klasa heapu zależy od ilości RAM i tego, czy instancja jest modowana; sufit to połowa fizycznego RAM i 12 GiB; iGPU odejmuje 512 MB.
+- `-Xms` = ¼ `-Xmx`, w widełkach 512–4096 MB.
+- Zestaw flag: G1GC w stylu Aikara; przy ≤2 wątkach `-XX:+AlwaysPreTouch` jest zdejmowane, a `ParallelGCThreads` przypięte.
+- `Apply` zapisuje heap i **dopisuje** flagi — istniejące własne argumenty nigdy nie są usuwane. Dalej można je edytować ręcznie w Settings.
+- Wynik zapisany w `instance.json` (`tuning`) pozwala pokazać „tuned" vs „machine changed" bez ponownego klikania.
+
+---
+
+## Analiza crashy (AI)
+
+Zakładka **Diagnostics** ma przy każdym logu i crash-raporcie lupę: **Analyze**. Najpierw odzywa się analizator offline — 12 reguł tekstowych (brak heapu, zła wersja Javy, brakująca zależność, duplikat moda, konflikt mixinów, brak klasy, zły loader, błąd OpenGL, crash natywny, OptiFine, uszkodzony jar, sesja konta) — każda z dowodem z logu i numerowanymi krokami po polsku.
+
+Dopiero potem, jeśli chcesz, model może dopisać wyjaśnienie:
+
+- **Domyślnie wyłączone.** Włączasz w **Settings → AI crash analysis**, wybierasz providera (`openai` = OpenAI/Ollama/LM Studio/OpenRouter, `anthropic` = Claude), endpoint i model.
+- **Zgoda na każde żądanie.** Pierwsze kliknięcie pokazuje ocenzurowany tekst, który *poszedłby* do providera, i licznik usuniętych danych; dopiero przycisk **Send redacted log and explain** wysyła cokolwiek. Zamknięcie okna anuluje zgodę.
+- **Redakcja przed wysłaniem:** ścieżki domowe, `--accessToken` / `--session`, tokeny JSON i `Bearer`, UUID graczy, adresy e-mail.
+- **Klucz API w keyringu systemu** (`spud-launcher` / `ai-api-key`), nigdy w `settings.json` i nigdy w logach. Na systemie bez magazynu poświadczeń panel to zgłasza, a reguły offline działają dalej.
+
+Pełny opis: reguły, tabela redakcji, lokalna Ollama, ograniczenia — [`docs/ai.md`](docs/ai.md).
+
+---
+
+## Synchronizacja w chmurze
+
+**Settings → Cloud sync**: backup całej instancji (światy, configi, jary wgrane ręcznie) do folderu, który kontrolujesz — dysk lokalny, dysk sieciowy, NAS albo katalog, który i tak synchronizuje OneDrive/Syncthing/Dropbox. Bez demona, bez watchera, bez wysyłania czegokolwiek w tle: push to kliknięcie, pull to kliknięcie.
+
+- **Jedna instancja = jeden folder** na zdalnym nośniku: `instances/<id>/manifest.json` + `snapshots/<RRRRMMDD-HHMMSS>-<sha[0..8]>.zip`.
+- **Snapshot to ten sam plik co eksport `.zip`** — archiwizacja idzie przez istniejący `instance_export_to`, więc backup zawiera dokładnie to, co eksport, razem ze światami.
+- **Restore nigdy nie nadpisuje lokalnej instancji.** Pobrany snapshot przechodzi przez normalny import i powstaje **nowa** instancja. „Zastąp moją kopię" to jawne usuń-i-przywróć, nie cichy merge.
+- **Deduplikacja wysyłki:** identyczne bajty na zdalnym nośniku = zero wysyłki, push tylko to raportuje.
+- **Weryfikacja:** każdy pull liczy SHA-256 i porównuje z manifestem; niezgodny plik jest usuwany, nie importowany.
+- **Retencja:** `sync_keep` (1–50, domyślnie 5) najnowszych snapshotów na instancję; najnowszy nigdy nie wypada.
+- **„newer on remote"**: lokalny `<root>/sync/state.json` pamięta ostatnio widziany `updated_at`, więc panel pokazuje, że inna maszyna coś wysłała.
+- **Provider jest abstrakcją:** trait `SyncProvider` ma sześć metod, `FolderProvider` jest implementacją referencyjną. S3 i Dropbox wchodzą w to samo API — są opisane, nie udawane.
+
+Pełny opis: layout nośnika, polityka konfliktów, format manifestu, dodanie backendu S3/Dropbox i ograniczenia — [`docs/sync.md`](docs/sync.md).
+
+---
+
 ## Discord Rich Presence
 
 Launcher mówi do lokalnego klienta Discorda po nazwanym potoku (`\\.\pipe\discord-ipc-0` … `-9`), własnym klientem IPC — bez zależności, bez wtyczki, bez wysyłania czegokolwiek do internetu. Ramka to 4 bajty długości (little-endian) i JSON.
@@ -776,7 +864,7 @@ Wskazówki:
 
 ## Format `settings.json`
 
-Ustawienia globalne, leżą w katalogu głównym danych. Brakujące pola przyjmują wartości domyślne, a zakresy są przycinane przy wczytaniu (`concurrency` 1–32, `default_memory_mb` 512–65536).
+Ustawienia globalne, leżą w katalogu głównym danych. Brakujące pola przyjmują wartości domyślne, a zakresy są przycinane przy wczytaniu (`concurrency` 1–32, `default_memory_mb` 512–65536, `ai_max_log_kb` 4–512, `sync_keep` 1–50).
 
 ```json
 {
@@ -795,7 +883,15 @@ Ustawienia globalne, leżą w katalogu głównym danych. Brakujące pola przyjmu
   "ms_client_id": null,
   "auto_install_java": true,
   "discord_rpc": true,
-  "discord_client_id": null
+  "discord_client_id": null,
+  "ai_enabled": false,
+  "ai_provider": "openai",
+  "ai_endpoint": "https://api.openai.com/v1",
+  "ai_model": "gpt-4o-mini",
+  "ai_max_log_kb": 64,
+  "sync_backend": "folder",
+  "sync_folder": null,
+  "sync_keep": 5
 }
 ```
 
@@ -811,10 +907,19 @@ Ustawienia globalne, leżą w katalogu głównym danych. Brakujące pola przyjmu
 | `show_snapshots` | Pokaż snapshoty na liście wersji. |
 | `mojang_meta` | URL manifestu wersji Mojang. |
 | `modrinth_api` | Bazowy URL API Modrinth. |
-| `curseforge_api_key` | Pole zarezerwowane; integracja CurseForge nie jest jeszcze zaimplementowana. || `ms_client_id` | Application (client) ID z Azure. Nadpisywane zmienną `SPUD_MS_CLIENT_ID`. |
+| `curseforge_api_key` | Pole zarezerwowane; integracja CurseForge nie jest jeszcze zaimplementowana. |
+| `ms_client_id` | Application (client) ID z Azure. Nadpisywane zmienną `SPUD_MS_CLIENT_ID`. |
 | `auto_install_java` | Pobierz JRE z Adoptium, gdy żaden zainstalowany runtime nie spełnia wymagań (tylko tryb `auto`). |
 | `discord_rpc` | Wysyłaj Rich Presence do lokalnego klienta Discorda. |
 | `discord_client_id` | Application ID z Discord Developer Portal. Bez niego toggle nic nie robi. |
+| `ai_enabled` | Wyjaśnienia crashy przez model. Domyślnie `false`; reguły offline działają niezależnie. |
+| `ai_provider` | `openai` (`/chat/completions`) lub `anthropic` (`/v1/messages`). |
+| `ai_endpoint` | Baza URL providera, bez końcowego `/`. Pusty ciąg wraca do domyślnego. |
+| `ai_model` | Nazwa modelu; pusta wraca do `gpt-4o-mini`. |
+| `ai_max_log_kb` | Limit promptu w KB, przycinany do 4–512. |
+| `sync_backend` | `folder`. Inne backendy wchodzą w to samo API `SyncProvider`, ale nie są zaimplementowane. |
+| `sync_folder` | Folder backupów instancji. Pusty ciąg jest przycinany do `null`, czyli sync wyłączony. |
+| `sync_keep` | Snapshoty na instancję, przycinane do 1–50. |
 
 ---
 
@@ -887,6 +992,26 @@ Wszystkie komendy są zarejestrowane w `src-tauri/src/lib.rs`. Argumenty skalarn
 | `friends_publish` | — | `PresenceFile` |
 | `friends_share_instance` | `id` | `SharedArchive` |
 | `friends_import` | `path` | `ImportResult` |
+| `hardware_profile` | — | `HardwareProfile` (`cpu_brand`, `cpu_cores`, `cpu_threads`, `memory_total_mb`, `memory_available_mb`, `gpu`, `gpu_kind`) |
+| `tuning_preview` | `instanceId` | `TuningPreview` (`profile`, `tuning`, `modded`, `java_major`, `current`, `current_jvm_args`) |
+| `tuning_apply` | `instanceId` | `InstanceConfig` |
+| `store_stats` | — | `StoreStats` (`blobs`, `bytes`, `index_path`) |
+| `store_dedupe` | `instanceId` | `DedupeReport` (`examined`, `reused`, `added`, `linked`, `copied`, `bytes_saved`, `problems`) |
+| `store_gc` | `dryRun` | `GcReport` (`removed`, `bytes_freed`, `kept`, `dry_run`, `removed_hashes`) |
+| `store_forget` | `instanceId`, `fileName` | — |
+| `plugins_list` | — | `PluginEntry[]` |
+| `plugins_set_enabled` | `id`, `enabled` | `PluginEntry[]` |
+| `plugins_open_folder` | — | `string` |
+| `ai_status` | — | `AiStatus` (`enabled`, `provider`, `endpoint`, `model`, `max_log_kb`, `has_key`, `keyring`) |
+| `ai_set_key` | `key` | `AiStatus` |
+| `ai_clear_key` | — | `AiStatus` |
+| `ai_analyze_crash` | `instanceId`, `name`, `consent` | `CrashAnalysis` (`local`, `preview`, `redaction`, `ai`, `ai_error`) |
+| `sync_status` | — | `SyncStatus` (`configured`, `backend`, `folder`, `reachable`, `writable`, `keep`, `cache_dir`, `local`) |
+| `sync_remotes` | — | `SyncRemoteView[]` (`instance_id`, `name`, `updated_at`, `snapshots`) |
+| `sync_push` | `instanceId`, `note?` | `SyncPushResult` (`snapshot`, `removed`, `deduplicated`, `files`, `archive_bytes`) |
+| `sync_pull` | `instanceId`, `file` | `SyncPullResult` (`snapshot`, `instance`, `files`) — importuje jako nową instancję |
+| `sync_forget_snapshot` | `instanceId`, `file` | `SyncManifest` |
+| `sync_open_folder` | — | `string` — otwiera folder z ustawień, nie przyjmuje ścieżki |
 
 Zdarzenia postępu: `install://progress` i `mods://progress`, payload `DownloadEvent`:
 
@@ -901,7 +1026,7 @@ Zdarzenia okna, gry i konsoli: `window://fullscreen` (payload `boolean` — laun
 
 ## Znane ograniczenia
 
-- **Zweryfikowana kompilacja i start gry.** `cargo check`, `cargo build` i `cargo test` przechodzą czysto (37 testów). End-to-end sprawdzono na żywej sieci: instalacja Fabric, konto offline, zestaw optymalizacyjny i start Minecrafta 26.3 (Fabric 0.19.5, 64 mody). Import z Modrinth App sprawdzony na profilu „Fabric 26.3” (32 mody) — skan odczytał wersję z `logs/latest.log` i skopiował zawartość do nowej instancji. Eksport i import instancji sprawdzone w obie strony dla `.zip` i `.mrpack`, w tym pobranie jara z linku CDN z weryfikacją SHA-1. Nieprzetestowane: instalacja Forge/NeoForge przez oficjalny installer (`--installClient`), odpowiedź serwera Microsoft na realnym `client_id` (samo okablowanie device code jest sprawdzone testami), pobranie Javy 8 z Adoptium i Rich Presence na prawdziwym `application id`.
+- **Zweryfikowana kompilacja i start gry.** `cargo check`, `cargo build` i `cargo test` przechodzą czysto (83 testy). End-to-end sprawdzono na żywej sieci: instalacja Fabric, konto offline, zestaw optymalizacyjny i start Minecrafta 26.3 (Fabric 0.19.5, 64 mody). Import z Modrinth App sprawdzony na profilu „Fabric 26.3” (32 mody) — skan odczytał wersję z `logs/latest.log` i skopiował zawartość do nowej instancji. Eksport i import instancji sprawdzone w obie strony dla `.zip` i `.mrpack`, w tym pobranie jara z linku CDN z weryfikacją SHA-1. Nieprzetestowane: instalacja Forge/NeoForge przez oficjalny installer (`--installClient`), odpowiedź serwera Microsoft na realnym `client_id` (samo okablowanie device code jest sprawdzone testami), pobranie Javy 8 z Adoptium, Rich Presence na prawdziwym `application id`, **realne wywołanie providera AI** (heurystyki, redakcja i walidacja konfiguracji mają testy; samo żądanie HTTP wymaga klucza) i **realny round-trip synchronizacji** (push/pull, retencja i weryfikacja hasha mają testy na `FolderProvider`; całość nie była jeszcze puszczona przez dysk sieciowy ani katalog chmury).
 - Brak weryfikacji integralności bibliotek loadera przy każdym starcie — `ensure_version_files` dociąga tylko pliki nieobecne; podmieniony, ale istniejący plik nie jest hashowany (biblioteki Fabric nie mają sum w profilu).
 - Instalacja Forge/NeoForge zależy od zachowania oficjalnego installera (`--installClient`) i układu katalogów staging; wymaga testu na realnej wersji gry.
 - `CurseForge` — pole `curseforge_api_key` istnieje, ale klient API nie jest napisany. Import z CurseForge działa (czyta `minecraftinstance.json`), ale instalacja paczek z tego źródła nie.

@@ -26,6 +26,9 @@ pub struct AppState {
     pub modrinth: ModrinthClient,
     pub running: RunningGames,
     pub logs: LogTailers,
+    /// Serialises mod-store sweeps: two concurrent dedupes would race on
+    /// `index.json` and could delete the same duplicate twice.
+    pub store_lock: tokio::sync::Mutex<()>,
     /// Discord presence worker; replaced when the settings change.
     discord: RwLock<DiscordPresence>,
     http: Client,
@@ -70,6 +73,7 @@ impl AppState {
             modrinth,
             running: RunningGames::new(),
             logs: LogTailers::default(),
+            store_lock: tokio::sync::Mutex::new(()),
             discord: RwLock::new(discord),
             http,
         })

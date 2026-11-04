@@ -19,6 +19,133 @@ export interface LauncherSettings {
   auto_install_java: boolean;
   discord_rpc: boolean;
   discord_client_id: string | null;
+  ai_enabled: boolean;
+  ai_provider: AiProvider;
+  ai_endpoint: string;
+  ai_model: string;
+  ai_max_log_kb: number;
+  sync_backend: SyncBackend;
+  sync_folder: string | null;
+  sync_keep: number;
+}
+
+export type AiProvider = "openai" | "anthropic";
+
+/** Only `folder` ships today; the backend name is in the settings so adding
+ * another (S3, Dropbox) does not need a schema change. */
+export type SyncBackend = "folder";
+
+/** What one instance's local sync bookkeeping says. */
+export interface SyncInstanceStatus {
+  instance_id: string;
+  name: string;
+  last_push_at: string | null;
+  last_snapshot: string | null;
+  last_pull_at: string | null;
+  remote_updated_at: string | null;
+  /** Another device pushed since this one last looked. */
+  remote_newer: boolean;
+}
+
+export interface SyncStatus {
+  configured: boolean;
+  backend: string;
+  folder: string | null;
+  reachable: boolean;
+  writable: boolean;
+  keep: number;
+  cache_dir: string;
+  local: SyncInstanceStatus[];
+}
+
+export interface SyncSnapshot {
+  file: string;
+  sha256: string;
+  bytes: number;
+  created_at: string;
+  origin: string;
+  mc_version: string;
+  loader: string;
+  loader_version: string | null;
+  note: string;
+}
+
+export interface SyncManifest {
+  schema: number;
+  instance_id: string;
+  name: string;
+  updated_at: string | null;
+  snapshots: SyncSnapshot[];
+}
+
+export interface SyncRemoteView {
+  instance_id: string;
+  name: string;
+  updated_at: string | null;
+  snapshots: SyncSnapshot[];
+}
+
+export interface SyncPushResult {
+  snapshot: SyncSnapshot;
+  removed: string[];
+  deduplicated: boolean;
+  files: number;
+  archive_bytes: number;
+}
+
+export interface SyncPullResult {
+  snapshot: SyncSnapshot;
+  instance: InstanceConfig;
+  files: number;
+}
+
+/** What Settings → AI and the crash dialog need to know about the provider. */
+export interface AiStatus {
+  enabled: boolean;
+  provider: AiProvider;
+  endpoint: string;
+  model: string;
+  max_log_kb: number;
+  /** Whether the OS keyring holds a key. The key itself never crosses the IPC. */
+  has_key: boolean;
+  /** False on systems without a credential store; the panel says so. */
+  keyring: boolean;
+}
+
+export type Severity = "critical" | "warning" | "info";
+
+export interface CrashDiagnosis {
+  id: string;
+  severity: Severity;
+  title: string;
+  evidence: string;
+  fix: string[];
+}
+
+export interface RedactionReport {
+  home_paths: number;
+  tokens: number;
+  uuids: number;
+  emails: number;
+}
+
+/** Offline analysis: runs with no network, no key and no consent. */
+export interface LocalCrashAnalysis {
+  summary: string;
+  exception: string | null;
+  diagnoses: CrashDiagnosis[];
+  mods: string[];
+  truncated: boolean;
+  bytes: number;
+}
+
+export interface CrashAnalysis {
+  local: LocalCrashAnalysis;
+  /** Redacted text the provider would receive. Present before consent. */
+  preview: string | null;
+  redaction: RedactionReport | null;
+  ai: string | null;
+  ai_error: string | null;
 }
 
 export interface InstanceSummary {
@@ -70,6 +197,7 @@ export interface InstanceConfig {
   game_args: string[];
   env: Record<string, string>;
   notes: string;
+  tuning: TuningState | null;
 }
 
 export interface NewInstance {
@@ -228,6 +356,85 @@ export interface InstalledMod {
   size: number;
   project_type: string;
   installed_at: string;
+}
+
+export type GpuKind = "dedicated" | "integrated" | "unknown";
+
+export interface HardwareProfile {
+  platform: string;
+  cpu_brand: string;
+  cpu_cores: number;
+  cpu_threads: number;
+  memory_total_mb: number;
+  memory_available_mb: number;
+  gpu: string | null;
+  gpu_kind: GpuKind;
+}
+
+export interface Tuning {
+  min_memory_mb: number;
+  max_memory_mb: number;
+  jvm_args: string[];
+  notes: string[];
+}
+
+export interface TuningPreview {
+  instance_id: string;
+  profile: HardwareProfile;
+  tuning: Tuning;
+  modded: boolean;
+  java_major: number;
+  current: boolean;
+  applied_at: string | null;
+  current_jvm_args: string[];
+}
+
+export interface TuningState {
+  applied_at: string;
+  cpu_threads: number;
+  memory_total_mb: number;
+  modded: boolean;
+  java_major: number;
+  max_memory_mb: number;
+}
+
+export interface StoreStats {
+  blobs: number;
+  bytes: number;
+  index_path: string;
+}
+
+export interface DedupeReport {
+  examined: number;
+  reused: number;
+  added: number;
+  linked: number;
+  copied: number;
+  bytes_saved: number;
+  problems: string[];
+}
+
+export interface GcReport {
+  removed: number;
+  bytes_freed: number;
+  kept: number;
+  dry_run: boolean;
+  removed_hashes: string[];
+}
+
+export interface PluginEntry {
+  id: string;
+  name: string;
+  version: string;
+  api: number;
+  description: string;
+  author: string;
+  main: string;
+  hooks: string[];
+  enabled: boolean;
+  error: string | null;
+  source: string | null;
+  dir: string;
 }
 
 export interface ModUpdate {

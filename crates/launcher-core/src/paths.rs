@@ -138,6 +138,21 @@ impl LauncherPaths {
         self.root.join("cache")
     }
 
+    /// Content-addressed mod store shared by every instance.
+    pub fn modstore_dir(&self) -> PathBuf {
+        self.root.join("modstore")
+    }
+
+    /// Installed plugins, one directory per plugin.
+    pub fn plugins_dir(&self) -> PathBuf {
+        self.root.join("plugins")
+    }
+
+    /// Optional user-supplied background images for the UI.
+    pub fn backgrounds_dir(&self) -> PathBuf {
+        self.root.join("backgrounds")
+    }
+
     /// Partial downloads live here until their hash verifies.
     pub fn download_cache_dir(&self) -> PathBuf {
         self.cache_dir().join("downloads")
@@ -159,6 +174,8 @@ impl LauncherPaths {
             self.asset_objects_dir(),
             self.asset_indexes_dir(),
             self.download_cache_dir(),
+            self.modstore_dir(),
+            self.plugins_dir(),
         ] {
             std::fs::create_dir_all(&dir).at(&dir)?;
         }

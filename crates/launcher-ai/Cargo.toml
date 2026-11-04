@@ -1,0 +1,17 @@
+[package]
+name = "launcher-ai"
+description = "Crash-log analysis: deterministic heuristics plus an optional LLM explainer"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+reqwest.workspace = true
+launcher-core = { path = "../launcher-core" }
+
+[dev-dependencies]
+tokio.workspace = true

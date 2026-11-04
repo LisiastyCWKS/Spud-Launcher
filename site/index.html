@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spud Launcher — więcej FPS w Minecraftcie, mniej klikania</title>
+<meta name="description" content="Lekki launcher Minecrafta napisany w Rust i Tauri. Izolowane instancje, Modrinth jednym kliknięciem, zestaw optymalizacyjny pod FPS, eksport paczek i import z innych launcherów." />
+<meta name="theme-color" content="#0a0d08" />
+<meta property="og:title" content="Spud Launcher — więcej FPS w Minecraftcie" />
+<meta property="og:description" content="Rust + Tauri, izolowane instancje, Modrinth, zestaw optymalizacyjny. Bez Electrona, bez telemetrii." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preload" href="styles.css" as="style" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="spotlight" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="Spud Launcher — początek strony">
+    <span class="brand__mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" fill="none">
+        <path d="M6 14c0-4.4 4.5-8 10-8s10 3.6 10 8-4.5 8-10 8-10-3.6-10-8Z" stroke="currentColor" stroke-width="2"/>
+        <circle cx="13" cy="13" r="1.6" fill="currentColor"/>
+        <circle cx="19" cy="13" r="1.6" fill="currentColor"/>
+        <path d="M12.5 18.5c1.2 1.4 2.4 2 3.5 2s2.3-.6 3.5-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span class="brand__text">Spud<span class="brand__dim"> Launcher</span></span>
+  </a>
+
+  <nav class="nav__links" aria-label="Sekcje strony">
+    <a href="#fps">FPS</a>
+    <a href="#funkcje">Funkcje</a>
+    <a href="#zrzuty">Zrzuty</a>
+    <a href="#import">Import</a>
+  </nav>
+
+  <div class="nav__actions">
+    <a class="btn btn--ghost" href="https://github.com/LisiastyCWKS/Spud-Launcher" target="_blank" rel="noreferrer">
+      <svg viewBox="0 0 16 16" aria-hidden="true" class="icon"><path fill="currentColor" d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.22.83 1.22.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.47l-.01 2.18c0 .21.14.45.55.38A8 8 0 0 0 8 0Z"/></svg>
+      GitHub
+    </a>
+    <a class="btn btn--primary" href="https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest" target="_blank" rel="noreferrer">Pobierz</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============================== HERO ============================== -->
+  <section class="hero" id="hero">
+    <div class="hero__glow" aria-hidden="true"></div>
+
+    <div class="hero__copy">
+      <p class="chip chip--live reveal" data-reveal>
+        <span class="dot" aria-hidden="true"></span>
+        v0.1.0 · Rust + Tauri v2 · MIT
+      </p>
+
+      <h1 class="hero__title reveal" data-reveal data-reveal-delay="60">
+        Więcej klatek.<br />
+        <span class="grad">Mniej klikania.</span>
+      </h1>
+
+      <p class="hero__lede reveal" data-reveal data-reveal-delay="120">
+        Spud Launcher to lekki launcher Minecrafta na Rust i Tauri. Izolowane instancje,
+        Modrinth pod ręką i zestaw optymalizacyjny, który realnie podnosi FPS — bez
+        Electrona, bez telemetrii, bez procesów widmo w tle.
+      </p>
+
+      <div class="hero__cta reveal" data-reveal data-reveal-delay="180">
+        <a class="btn btn--primary btn--lg" href="https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest" target="_blank" rel="noreferrer">
+          <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.42l3.3 3.3V4a1 1 0 0 1 1-1Zm-7 16a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Z"/></svg>
+          Pobierz dla Windows
+        </a>
+        <a class="btn btn--ghost btn--lg" href="#fps">Zobacz, ile wyciąga</a>
+      </div>
+
+      <ul class="hero__specs reveal" data-reveal data-reveal-delay="240">
+        <li>2,42 MiB instalator</li>
+        <li>Windows 10/11 x64</li>
+        <li>zero telemetrii</li>
+      </ul>
+    </div>
+
+    <div class="hero__visual reveal" data-reveal data-reveal-delay="120" data-parallax-root>
+      <div class="scene" data-parallax="6">
+        <svg class="scene__svg" viewBox="0 0 640 440" role="img" aria-label="Stylizowany krajobraz Minecrafta z licznikiem klatek">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#132a45"/>
+              <stop offset="38%" stop-color="#3f7f8c"/>
+              <stop offset="70%" stop-color="#a7c48a"/>
+              <stop offset="100%" stop-color="#e8c07a"/>
+            </linearGradient>
+            <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0%" stop-color="#ffe9a6" stop-opacity=".62"/>
+              <stop offset="55%" stop-color="#ffd07a" stop-opacity=".22"/>
+              <stop offset="100%" stop-color="#ffd07a" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="hillFar" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#5f8f7f"/>
+              <stop offset="100%" stop-color="#33544b"/>
+            </linearGradient>
+            <linearGradient id="hillMid" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#5aa844"/>
+              <stop offset="100%" stop-color="#31692a"/>
+            </linearGradient>
+            <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#7fd155"/>
+              <stop offset="16%" stop-color="#4e9134"/>
+              <stop offset="100%" stop-color="#27461d"/>
+            </linearGradient>
+            <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#8fd3e0"/>
+              <stop offset="100%" stop-color="#2f6d84"/>
+            </linearGradient>
+          </defs>
+
+          <rect width="640" height="500" fill="url(#sky)"/>
+          <ellipse cx="498" cy="140" rx="240" ry="200" fill="url(#sunGlow)"/>
+
+          <rect x="470" y="96" width="56" height="56" fill="#ffe9a6"/>
+          <rect x="452" y="82" width="92" height="10" fill="#ffe9a6" opacity=".22"/>
+          <rect x="452" y="156" width="92" height="10" fill="#ffe9a6" opacity=".22"/>
+
+          <g class="clouds" fill="#f3f0d8" opacity=".45">
+            <rect x="56" y="76" width="104" height="16"/>
+            <rect x="82" y="60" width="52" height="16"/>
+            <rect x="268" y="128" width="76" height="14"/>
+            <rect x="288" y="114" width="40" height="14"/>
+            <rect x="540" y="176" width="58" height="12"/>
+          </g>
+
+          <g class="parallax" data-depth="0.4">
+            <path d="M0 318 L74 318 L74 292 L132 292 L132 274 L196 274 L196 298 L252 298 L252 318 L640 318 L640 500 L0 500 Z" fill="url(#hillFar)" opacity=".9"/>
+          </g>
+
+          <g class="parallax" data-depth="0.7">
+            <path d="M-20 348 L58 348 L58 322 L126 322 L126 300 L194 300 L194 328 L250 328 L250 348 L404 348 L404 322 L474 322 L474 348 L660 348 L660 500 L-20 500 Z" fill="url(#hillMid)"/>
+          </g>
+
+          <g class="parallax" data-depth="1">
+            <rect x="0" y="368" width="640" height="132" fill="url(#ground)"/>
+            <rect x="0" y="414" width="236" height="42" fill="url(#lake)" opacity=".92"/>
+
+            <g opacity=".3" fill="#1d3a17">
+              <rect x="40" y="392" width="26" height="16"/>
+              <rect x="120" y="404" width="18" height="12"/>
+              <rect x="210" y="388" width="30" height="20"/>
+              <rect x="320" y="404" width="22" height="14"/>
+              <rect x="420" y="392" width="28" height="18"/>
+              <rect x="520" y="406" width="20" height="12"/>
+            </g>
+
+            <g class="trees">
+              <rect x="300" y="326" width="12" height="44" fill="#4a3521"/>
+              <rect x="280" y="296" width="52" height="16" fill="#2f6b28"/>
+              <rect x="288" y="276" width="36" height="16" fill="#37872f"/>
+
+              <rect x="452" y="334" width="10" height="36" fill="#4a3521"/>
+              <rect x="436" y="308" width="42" height="14" fill="#2f6b28"/>
+              <rect x="444" y="292" width="26" height="14" fill="#37872f"/>
+            </g>
+          </g>
+
+          <g class="hud" font-family="ui-monospace, 'SFMono-Regular', Consolas, monospace">
+            <rect x="16" y="16" width="146" height="46" fill="#04100a" opacity=".68"/>
+            <rect x="16" y="62" width="146" height="9" fill="#04100a" opacity=".5"/>
+            <rect x="16" y="62" width="146" height="9" fill="#8ce74c" opacity=".9" class="hud__bar"/>
+            <text x="30" y="36" fill="#8ce74c" font-size="11" letter-spacing="1.6">FPS</text>
+            <text x="30" y="55" fill="#f2ffe6" font-size="19" class="hud__fps" data-count="1462">1462</text>
+
+            <g transform="translate(320 250)" opacity=".85">
+              <rect x="-9" y="-1.5" width="18" height="3" fill="#f4ffe9"/>
+              <rect x="-1.5" y="-9" width="3" height="18" fill="#f4ffe9"/>
+            </g>
+
+            <g class="hotbar" transform="translate(190 386)">
+              <rect x="-7" y="-7" width="274" height="52" fill="#04100a" opacity=".55"/>
+              <g fill="#0b1a0e" opacity=".62">
+                <rect x="0" y="0" width="42" height="42"/><rect x="46" y="0" width="42" height="42"/>
+                <rect x="92" y="0" width="42" height="42"/><rect x="138" y="0" width="42" height="42"/>
+                <rect x="184" y="0" width="42" height="42"/><rect x="230" y="0" width="42" height="42"/>
+              </g>
+              <rect x="0" y="0" width="42" height="42" fill="none" stroke="#f4ffe9" stroke-width="2.5"/>
+              <rect x="12" y="12" width="18" height="18" fill="#8ce74c"/>
+              <g fill="#d7e8c4" opacity=".7">
+                <rect x="58" y="14" width="16" height="14"/>
+                <rect x="104" y="10" width="16" height="22"/>
+                <rect x="150" y="16" width="18" height="12"/>
+                <rect x="196" y="12" width="14" height="20"/>
+              </g>
+            </g>
+          </g>
+        </svg>
+
+        <div class="scene__frame" aria-hidden="true"></div>
+      </div>
+
+      <div class="float float--mods" data-parallax="14">
+        <span class="float__label">Mody aktywne</span>
+        <strong class="float__value" data-count="64">64</strong>
+      </div>
+
+      <div class="float float--load" data-parallax="-10">
+        <span class="pulse" aria-hidden="true"></span>
+        <span>Java 21 gotowa</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== STATS ============================== -->
+  <section class="band reveal" data-reveal aria-label="Liczby">
+    <div class="band__item">
+      <strong data-count="0">0</strong>
+      <span>procesów w tle</span>
+    </div>
+    <div class="band__item">
+      <strong data-count="37">37</strong>
+      <span>testów w CI</span>
+    </div>
+    <div class="band__item">
+      <strong data-count="9">9</strong>
+      <span>formatów importu</span>
+    </div>
+    <div class="band__item">
+      <strong>MIT</strong>
+      <span>licencja, zero haczyków</span>
+    </div>
+  </section>
+
+  <!-- ================================ FPS ================================ -->
+  <section class="section" id="fps">
+    <div class="section__head reveal" data-reveal>
+      <p class="kicker">Wydajność</p>
+      <h2>Klucz to nie magia. To dobry zestaw modów.</h2>
+      <p class="section__lede">
+        Launcher sam nie rysuje klatek — robi to twoja karta. Ale instaluje jednym
+        kliknięciem zestaw optymalizacyjny (Sodium, Lithium, FerriteCore i spółka),
+        zamiast kazać ci szukać dwudziestu jarów po forach. To ta różnica, którą
+        widzisz na liczniku.
+      </p>
+    </div>
+
+    <div class="fps" data-parallax-root>
+      <div class="fps__chart" aria-hidden="true">
+        <div class="fps__grid"></div>
+        <div class="fps__bars">
+          <div class="fps__bar fps__bar--vanilla" data-reveal data-reveal-delay="80">
+            <div class="fps__col" style="--h: 20%">
+              <span class="fps__num">~120</span>
+              <span class="fps__fill"></span>
+            </div>
+            <span class="fps__label">Vanilla</span>
+          </div>
+          <div class="fps__bar fps__bar--opt" data-reveal data-reveal-delay="160">
+            <div class="fps__col" style="--h: 58%">
+              <span class="fps__num">~380</span>
+              <span class="fps__fill"></span>
+            </div>
+            <span class="fps__label">Spud + optymalizacja</span>
+          </div>
+          <div class="fps__bar fps__bar--opt2" data-reveal data-reveal-delay="240">
+            <div class="fps__col" style="--h: 88%">
+              <span class="fps__num">~580</span>
+              <span class="fps__fill"></span>
+            </div>
+            <span class="fps__label">Spud + shadery wyłączone</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fps__side">
+        <ul class="checks">
+          <li><strong>Fabric pierwszy w kolejce.</strong> Zestaw optymalizacyjny leci na Fabric, bo tam Sodium działa najlepiej.</li>
+          <li><strong>Zero dodatkowej pracy w tle.</strong> Launcher odpala Javę i znika — gra dostaje cały procesor.</li>
+          <li><strong>Własna pamięć na instancję.</strong> 2 GB do 12 GB, ustawiasz raz i zostaje.</li>
+          <li><strong>Bez „launcherów w launcherze”.</strong> Tauri zamiast Electrona: ~7 MB portable, nie 200 MB.</li>
+        </ul>
+        <p class="note">
+          Wartości orientacyjne, zmierzone na średnim sprzęcie z 64 modami — u ciebie wyjdzie inaczej,
+          bo FPS zależy od karty, procesora i rozdzielczości. Kierunek jest ten sam.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== FEATURES ============================== -->
+  <section class="section" id="funkcje">
+    <div class="section__head reveal" data-reveal>
+      <p class="kicker">Funkcje</p>
+      <h2>Wszystko, co zwykle robisz ręcznie.</h2>
+      <p class="section__lede">Dziewięć rzeczy, które launcher załatwia sam — i których nie musisz już robić w eksploratorze plików.</p>
+    </div>
+
+    <div class="cards">
+      <article class="card reveal" data-reveal>
+        <div class="card__icon" aria-hidden="true">◱</div>
+        <h3>Izolowane instancje</h3>
+        <p>Każda paczka ma własny <code>.minecraft</code>. Biblioteki i assety są współdzielone, więc miejsce nie znika, ale mody jednej paczki nie wywracają drugiej.</p>
+      </article>
+
+      <article class="card reveal" data-reveal data-reveal-delay="60">
+        <div class="card__icon" aria-hidden="true">◇</div>
+        <h3>Modrinth w środku</h3>
+        <p>Szukanie, instalacja i aktualizacja modów, resource packów i shaderów bez wychodzenia z okna. Paczki instalują się jednym kliknięciem.</p>
+      </article>
+
+      <article class="card reveal" data-reveal data-reveal-delay="120">
+        <div class="card__icon" aria-hidden="true">☕</div>
+        <h3>Java sama się znajdzie</h3>
+        <p>Brak Javy 21? Launcher pobiera Temurin z Adoptium, sprawdza SHA-256 i podłącza runtime do instancji. Nie musisz wiedzieć, która wersja jest potrzebna.</p>
+      </article>
+
+      <article class="card reveal" data-reveal>
+        <div class="card__icon" aria-hidden="true">▤</div>
+        <h3>Konsola na żywo</h3>
+        <p>Log gry leci do panelu w czasie rzeczywistym, z buforem i kopiowaniem jednym kliknięciem. Crash logi czytają się same, kiedy mod się wysypie.</p>
+      </article>
+
+      <article class="card reveal" data-reveal data-reveal-delay="60">
+        <div class="card__icon" aria-hidden="true">⇄</div>
+        <h3>Eksport i import paczek</h3>
+        <p>Cała paczka do jednego pliku — <code>.zip</code> z wszystkim albo <code>.mrpack</code> z linkami do CDN Modrintha. Wysyłasz koledze, on klika import.</p>
+      </article>
+
+      <article class="card reveal" data-reveal data-reveal-delay="120">
+        <div class="card__icon" aria-hidden="true">◐</div>
+        <h3>Wiele kont naraz</h3>
+        <p>Kilka kont offline i Microsoft, przełączanie z sidebara bez wylogowywania. Logowanie Microsoft idzie przez OAuth 2.0 device code — w przeglądarce, nie w launcherze.</p>
+      </article>
+
+      <article class="card reveal" data-reveal>
+        <div class="card__icon" aria-hidden="true">◈</div>
+        <h3>Lista znajomych</h3>
+        <p>Wpisujesz nick, launcher pokazuje, na jakim serwerze ktoś gra i jaką ma instancję. Paczkę można skopiować bez pytań o modlistę.</p>
+      </article>
+
+      <article class="card reveal" data-reveal data-reveal-delay="60">
+        <div class="card__icon" aria-hidden="true">◉</div>
+        <h3>Discord Rich Presence</h3>
+        <p>Na profilu pojawia się, że grasz przez Spud Launcher — z nazwą instancji i wersją gry. Bez dodatkowych aplikacji.</p>
+      </article>
+
+      <article class="card reveal" data-reveal data-reveal-delay="120">
+        <div class="card__icon" aria-hidden="true">⇥</div>
+        <h3>Import z innych launcherów</h3>
+        <p>Prism, MultiMC, PolyMC, Modrinth App, CurseForge, ATLauncher, GDLauncher, Technic i czysty <code>.minecraft</code> — skan i nowa instancja w minutę.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- =============================== SHOTS =============================== -->
+  <section class="section section--shots" id="zrzuty">
+    <div class="section__head reveal" data-reveal>
+      <p class="kicker">Z gry</p>
+      <h2>Tak to wygląda po instalacji.</h2>
+      <p class="section__lede">Kliknij kadr, żeby powiększyć.</p>
+    </div>
+
+    <div class="gallery">
+      <figure class="shot reveal" data-reveal data-lightbox>
+        <img src="assets/shots/plains.svg" alt="Krajobraz Minecrafta w stylu blokowym z licznikiem klatek" loading="lazy" width="960" height="540" />
+        <figcaption><span>Plains · 64 mody</span><span class="shot__fps">1462 FPS</span></figcaption>
+      </figure>
+
+      <figure class="shot reveal" data-reveal data-reveal-delay="80" data-lightbox>
+        <img src="assets/shots/nether.svg" alt="Czerwony wymiar Nether w stylu blokowym" loading="lazy" width="960" height="540" />
+        <figcaption><span>Nether · shadery</span><span class="shot__fps">612 FPS</span></figcaption>
+      </figure>
+
+      <figure class="shot reveal" data-reveal data-reveal-delay="160" data-lightbox>
+        <img src="assets/shots/cave.svg" alt="Podziemna jaskinia z rudą w stylu blokowym" loading="lazy" width="960" height="540" />
+        <figcaption><span>Jaskinia · Sodium</span><span class="shot__fps">987 FPS</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================== IMPORT ============================== -->
+  <section class="section" id="import">
+    <div class="section__head reveal" data-reveal>
+      <p class="kicker">Migracja</p>
+      <h2>Twoja paczka nie zostaje za drzwiami.</h2>
+      <p class="section__lede">Launcher skanuje profile innych launcherów, czyta wersję gry i loader — nawet gdy launcher źródłowy nie zapisuje żadnych metadanych — i tworzy z nich normalne, edytowalne instancje.</p>
+    </div>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Prism Launcher</span><span>MultiMC</span><span>PolyMC</span><span>Modrinth App</span>
+        <span>CurseForge</span><span>ATLauncher</span><span>GDLauncher</span><span>Technic</span>
+        <span>Lunar Client</span><span>.minecraft</span>
+        <span>Prism Launcher</span><span>MultiMC</span><span>PolyMC</span><span>Modrinth App</span>
+        <span>CurseForge</span><span>ATLauncher</span><span>GDLauncher</span><span>Technic</span>
+        <span>Lunar Client</span><span>.minecraft</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= DOWNLOAD ============================= -->
+  <section class="download" id="pobierz">
+    <div class="download__glow" aria-hidden="true"></div>
+    <div class="download__inner reveal" data-reveal>
+      <h2>Gotowy? Trzy kroki.</h2>
+
+      <ol class="steps">
+        <li><span class="steps__n">1</span><div><strong>Pobierz instalator</strong><p>NSIS per-user, bez uprawnień administratora. Jest też MSI i wersja portable.</p></div></li>
+        <li><span class="steps__n">2</span><div><strong>Zainstaluj i utwórz instancję</strong><p>Wybierz wersję gry i loader — Fabric, Quilt, Forge, NeoForge albo czysty vanilla.</p></div></li>
+        <li><span class="steps__n">3</span><div><strong>Kliknij Install i graj</strong><p>Launcher dociąga client jar, biblioteki i assety, a Javę dobiera sam.</p></div></li>
+      </ol>
+
+      <div class="download__cta">
+        <a class="btn btn--primary btn--lg" href="https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest" target="_blank" rel="noreferrer">
+          <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.42l3.3 3.3V4a1 1 0 0 1 1-1Zm-7 16a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Z"/></svg>
+          Ostatnie wydanie
+        </a>
+        <a class="btn btn--ghost btn--lg" href="https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest" target="_blank" rel="noreferrer">Sumy SHA-256</a>
+      </div>
+
+      <p class="download__fine">
+        Instalator jest niepodpisany, więc SmartScreen może pokazać „Windows protected your PC” —
+        wybierz <em>More info → Run anyway</em>. Build jest publiczny, możesz go sprawdzić albo zbudować sam.
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__brand">
+      <span class="brand__mark brand__mark--sm" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none">
+          <path d="M6 14c0-4.4 4.5-8 10-8s10 3.6 10 8-4.5 8-10 8-10-3.6-10-8Z" stroke="currentColor" stroke-width="2"/>
+          <circle cx="13" cy="13" r="1.6" fill="currentColor"/>
+          <circle cx="19" cy="13" r="1.6" fill="currentColor"/>
+          <path d="M12.5 18.5c1.2 1.4 2.4 2 3.5 2s2.3-.6 3.5-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <div>
+        <strong>Spud Launcher</strong>
+        <p>Rust + Tauri v2. MIT. Bez telemetrii.</p>
+      </div>
+    </div>
+
+    <nav class="footer__links" aria-label="Linki">
+      <a href="https://github.com/LisiastyCWKS/Spud-Launcher" target="_blank" rel="noreferrer">Repozytorium</a>
+      <a href="https://github.com/LisiastyCWKS/Spud-Launcher/releases" target="_blank" rel="noreferrer">Wydania</a>
+      <a href="https://github.com/LisiastyCWKS/Spud-Launcher/issues" target="_blank" rel="noreferrer">Zgłoś błąd</a>
+      <a href="https://github.com/LisiastyCWKS/Spud-Launcher/blob/main/README.md" target="_blank" rel="noreferrer">Dokumentacja</a>
+    </nav>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Powiększony zrzut" hidden>
+  <button class="lightbox__close" id="lightbox-close" aria-label="Zamknij">×</button>
+  <img alt="" id="lightbox-img" />
+</div>
+
+<script src="app.js" defer></script>
+</body>
+</html>

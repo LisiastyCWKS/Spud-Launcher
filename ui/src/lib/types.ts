@@ -2,6 +2,13 @@ export type LoaderKind = "vanilla" | "fabric" | "quilt" | "forge" | "neoforge";
 
 export type Theme = "system" | "dark" | "light";
 
+/** Palette layered over the dark/light theme. `spud` is the stock look. */
+export type ThemePreset = "spud" | "midnight" | "forest" | "dusk" | "paper";
+
+export type Density = "comfortable" | "compact";
+
+export type Corners = "sharp" | "soft" | "round";
+
 export interface LauncherSettings {
   schema: number;
   theme: Theme;
@@ -31,6 +38,20 @@ export interface LauncherSettings {
   overlay_enabled: boolean;
   /** Global combination that toggles it, e.g. `Shift+Tab`. */
   overlay_hotkey: string;
+  theme_preset: ThemePreset;
+  density: Density;
+  corners: Corners;
+  /** File name inside `<root>/backgrounds/`; empty means none. */
+  background: string;
+  /** 0–100. */
+  background_opacity: number;
+  /** 0–40 px. */
+  background_blur: number;
+  /** 200–320 px. */
+  sidebar_width: number;
+  /** 960–1800 px. */
+  content_width: number;
+  reduce_motion: boolean;
 }
 
 export type AiProvider = "openai" | "anthropic";
@@ -137,6 +158,14 @@ export interface OverlayMod {
   title: string;
   version: string;
   file_name: string;
+  bytes: number;
+}
+
+/** One image the launcher can paint behind the shell. */
+export interface BackgroundFile {
+  /** Bare file name — never a path. */
+  name: string;
+  mime: string;
   bytes: number;
 }
 

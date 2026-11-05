@@ -1,5 +1,6 @@
 mod accounts;
 mod ai;
+mod appearance;
 pub mod console;
 pub mod friends;
 mod game;
@@ -16,6 +17,7 @@ pub mod transfer;
 
 pub use accounts::*;
 pub use ai::*;
+pub use appearance::*;
 pub use console::*;
 pub use friends::*;
 pub use game::*;

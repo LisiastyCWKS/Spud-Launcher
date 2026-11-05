@@ -44,6 +44,42 @@ impl Default for Theme {
     }
 }
 
+/// Visual layout knobs. The preset picks a palette, the rest reshape the shell.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ThemePreset {
+    /// The stock spud palette — nothing is overridden.
+    #[default]
+    Spud,
+    /// Near-black navy with a cool cast.
+    Midnight,
+    /// Deep green and moss.
+    Forest,
+    /// Warm plum and ember.
+    Dusk,
+    /// Warm off-white paper for daytime use.
+    Paper,
+}
+
+/// Row and padding rhythm for lists, cards and settings.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Density {
+    #[default]
+    Comfortable,
+    Compact,
+}
+
+/// Corner rounding scale, applied to `--radius` and `--radius-sm`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Corners {
+    Sharp,
+    #[default]
+    Soft,
+    Round,
+}
+
 /// Global preferences. Instance-specific settings live in `instance.json`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -101,6 +137,23 @@ pub struct LauncherSettings {
     /// Global shortcut that shows/hides the overlay, in the
     /// `Modifier+Key` syntax the shortcut plugin parses (`Shift+Tab`).
     pub overlay_hotkey: String,
+    /// Palette preset layered over the dark/light theme.
+    pub theme_preset: ThemePreset,
+    pub density: Density,
+    pub corners: Corners,
+    /// File name inside `<root>/backgrounds/`; empty means no background.
+    /// Stored as a bare name — never a path — and re-validated on read.
+    pub background: String,
+    /// How strongly the image shows through the shell. 0–100.
+    pub background_opacity: u8,
+    /// Gaussian blur applied to the image. 0–40 px.
+    pub background_blur: u8,
+    /// Sidebar column width in pixels. 200–320.
+    pub sidebar_width: u16,
+    /// Max width of the content column in pixels. 960–1800.
+    pub content_width: u16,
+    /// Kill every transition and animation, independent of the OS setting.
+    pub reduce_motion: bool,
 }
 
 impl Default for LauncherSettings {
@@ -133,6 +186,15 @@ impl Default for LauncherSettings {
             sync_keep: 5,
             overlay_enabled: false,
             overlay_hotkey: "Shift+Tab".to_string(),
+            theme_preset: ThemePreset::Spud,
+            density: Density::Comfortable,
+            corners: Corners::Soft,
+            background: String::new(),
+            background_opacity: 32,
+            background_blur: 14,
+            sidebar_width: 236,
+            content_width: 1240,
+            reduce_motion: false,
         }
     }
 }
@@ -206,6 +268,17 @@ impl LauncherSettings {
         if self.overlay_hotkey.len() > 64 {
             self.overlay_hotkey.truncate(64);
         }
+        // A stale or hand-edited background name must never reach the file
+        // layer; an unusable one degrades to "no background" instead of a
+        // startup error. The picker only offers names that pass this test.
+        self.background = self.background.trim().to_string();
+        if !crate::appearance::is_valid_background_name(&self.background) {
+            self.background.clear();
+        }
+        self.background_opacity = self.background_opacity.min(100);
+        self.background_blur = self.background_blur.min(40);
+        self.sidebar_width = self.sidebar_width.clamp(200, 320);
+        self.content_width = self.content_width.clamp(960, 1800);
         self.schema = 1;
     }
 }
@@ -247,5 +320,49 @@ mod tests {
         settings.overlay_hotkey = "Shift+".repeat(40);
         settings.sanitise();
         assert_eq!(settings.overlay_hotkey.len(), 64);
+    }
+
+    #[test]
+    fn an_invalid_background_name_becomes_no_background() {
+        let mut settings = LauncherSettings::default();
+        settings.background = "  ../escape.png  ".into();
+        settings.sanitise();
+        assert!(settings.background.is_empty());
+
+        settings.background = " mountains.jpg ".into();
+        settings.sanitise();
+        assert_eq!(settings.background, "mountains.jpg");
+    }
+
+    #[test]
+    fn appearance_numbers_are_clamped() {
+        let mut settings = LauncherSettings::default();
+        settings.background_opacity = 250;
+        settings.background_blur = 90;
+        settings.sidebar_width = 10;
+        settings.content_width = 9000;
+        settings.sanitise();
+        assert_eq!(settings.background_opacity, 100);
+        assert_eq!(settings.background_blur, 40);
+        assert_eq!(settings.sidebar_width, 200);
+        assert_eq!(settings.content_width, 1800);
+
+        settings.sidebar_width = 400;
+        settings.content_width = 10;
+        settings.sanitise();
+        assert_eq!(settings.sidebar_width, 320);
+        assert_eq!(settings.content_width, 960);
+    }
+
+    #[test]
+    fn defaults_keep_the_stock_look() {
+        let settings = LauncherSettings::default();
+        assert_eq!(settings.theme_preset, ThemePreset::Spud);
+        assert_eq!(settings.density, Density::Comfortable);
+        assert_eq!(settings.corners, Corners::Soft);
+        assert!(settings.background.is_empty());
+        assert_eq!(settings.sidebar_width, 236);
+        assert_eq!(settings.content_width, 1240);
+        assert!(!settings.reduce_motion);
     }
 }

@@ -176,6 +176,7 @@ impl LauncherPaths {
             self.download_cache_dir(),
             self.modstore_dir(),
             self.plugins_dir(),
+            self.backgrounds_dir(),
         ] {
             std::fs::create_dir_all(&dir).at(&dir)?;
         }

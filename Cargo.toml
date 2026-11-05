@@ -41,6 +41,7 @@ hex = "0.4"
 zip = { version = "2", default-features = false, features = ["deflate"] }
 directories = "5"
 tempfile = "3"
+base64 = "0.22"
 
 # --- security ---
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service", "crypto-rust"] }

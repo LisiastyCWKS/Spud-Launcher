@@ -109,6 +109,9 @@ pub fn run() {
             commands::overlay_payload,
             commands::overlay_toggle,
             commands::overlay_close,
+            commands::backgrounds_list,
+            commands::background_data,
+            commands::backgrounds_open_folder,
         ]);
 
     builder

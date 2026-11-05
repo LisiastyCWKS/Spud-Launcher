@@ -9,6 +9,7 @@ import { PluginsPanel } from "./PluginsPanel";
 import { AiPanel } from "./AiPanel";
 import { SyncPanel } from "./SyncPanel";
 import { OverlayPanel } from "./OverlayPanel";
+import { AppearancePanel } from "./AppearancePanel";
 
 const THEMES: Array<{ id: Theme; label: string }> = [
   { id: "system", label: "System" },
@@ -34,6 +35,7 @@ export function SettingsPanel({
   onTheme,
   onAccent,
   onSaved,
+  onPreview,
 }: {
   settings: LauncherSettings | null;
   theme: Theme;
@@ -41,6 +43,7 @@ export function SettingsPanel({
   onTheme: (theme: Theme) => void;
   onAccent: (hex: string | null) => void;
   onSaved: (settings: LauncherSettings) => void;
+  onPreview: (next: Partial<LauncherSettings>) => void;
 }) {
   const [draft, setDraft] = useState<LauncherSettings | null>(settings);
   const [runtimes, setRuntimes] = useState<JavaRuntime[]>([]);
@@ -151,6 +154,16 @@ export function SettingsPanel({
           <div className="field">
             <label>Accent colour</label>
             <AccentPicker accent={accent} onChange={onAccent} />
+          </div>
+
+          <div className="field">
+            <label>Personalization</label>
+            <AppearancePanel
+              settings={draft}
+              patch={patch}
+              onPreview={onPreview}
+              onError={setError}
+            />
           </div>
 
           <div className="field">

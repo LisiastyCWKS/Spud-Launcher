@@ -21,6 +21,13 @@
   --radius: 10px;
   --radius-sm: 7px;
   --sidebar: 236px;
+  /* Personalization: nothing here is baked into a rule, so a preset, a width
+     and a background can be swapped at runtime without touching the DOM. */
+  --content-max: 1240px;
+  --bg-image: none;
+  --bg-opacity: 0.32;
+  --bg-blur: 14px;
+  --bg-tint: 0.55;
   /* Motion: one place owns the rhythm so nothing drifts off-beat. */
   --dur-1: 140ms;
   --dur-2: 240ms;
@@ -55,6 +62,175 @@
   --warning: #8a6a10;
   --success: #157a49;
   --focus: #157a49;
+}
+
+/* ---------- palettes ---------- */
+/*
+ * A preset only overrides colour tokens; theme.css keeps owning the structure,
+ * the motion tokens and every component. That is why a preset works in both the
+ * dark and the light variant instead of being a second theme system: pick
+ * Spud and you get the dark or light palette above unchanged.
+ */
+
+/* Midnight — near-black navy, cool highlights. */
+:root[data-theme="dark"][data-preset="midnight"] {
+  color-scheme: dark;
+  --bg: #080b14;
+  --bg-soft: #0c1120;
+  --surface: #111726;
+  --surface-2: #161d30;
+  --surface-3: #1d263c;
+  --border: #243050;
+  --border-strong: #33416a;
+  --text: #e6ecf8;
+  --text-soft: #bcc7de;
+  --muted: #7f8cab;
+  --danger: #ff8282;
+  --danger-soft: #341d24;
+  --warning: #e6c96f;
+}
+
+:root[data-theme="light"][data-preset="midnight"] {
+  color-scheme: light;
+  --bg: #f2f5fc;
+  --bg-soft: #e9eefa;
+  --surface: #ffffff;
+  --surface-2: #eef2fb;
+  --surface-3: #e2e9f7;
+  --border: #d7e0f1;
+  --border-strong: #bfcde6;
+  --text: #0c1424;
+  --text-soft: #26324a;
+  --muted: #5a6884;
+  --danger: #b3261e;
+  --danger-soft: #fbeceb;
+  --warning: #7d5f10;
+}
+
+/* Forest — deep moss, bark and lichen. */
+:root[data-theme="dark"][data-preset="forest"] {
+  color-scheme: dark;
+  --bg: #0a0f0a;
+  --bg-soft: #0e150f;
+  --surface: #131c14;
+  --surface-2: #18231a;
+  --surface-3: #1f2d21;
+  --border: #26382a;
+  --border-strong: #374d3b;
+  --text: #e8f0e6;
+  --text-soft: #c0cfbd;
+  --muted: #869b85;
+  --danger: #ff8585;
+  --danger-soft: #351d1c;
+  --warning: #d8c273;
+}
+
+:root[data-theme="light"][data-preset="forest"] {
+  color-scheme: light;
+  --bg: #f3f7f1;
+  --bg-soft: #ebf1e7;
+  --surface: #ffffff;
+  --surface-2: #eff5ec;
+  --surface-3: #e4ecdf;
+  --border: #d9e3d4;
+  --border-strong: #c2d0bc;
+  --text: #111a12;
+  --text-soft: #2b3a2c;
+  --muted: #5c6f5d;
+  --danger: #b3261e;
+  --danger-soft: #fbeceb;
+  --warning: #7c6110;
+}
+
+/* Dusk — plum, ember and a low sun. */
+:root[data-theme="dark"][data-preset="dusk"] {
+  color-scheme: dark;
+  --bg: #100b12;
+  --bg-soft: #150e18;
+  --surface: #1b1220;
+  --surface-2: #221728;
+  --surface-3: #2b1d33;
+  --border: #36253f;
+  --border-strong: #4a3357;
+  --text: #f2e8f4;
+  --text-soft: #d1c0d6;
+  --muted: #9b86a3;
+  --danger: #ff8f8f;
+  --danger-soft: #3a1e24;
+  --warning: #eccb78;
+}
+
+:root[data-theme="light"][data-preset="dusk"] {
+  color-scheme: light;
+  --bg: #faf4f8;
+  --bg-soft: #f4eaf2;
+  --surface: #ffffff;
+  --surface-2: #f8eff6;
+  --surface-3: #f0e3ee;
+  --border: #e8d9e5;
+  --border-strong: #d6c2d2;
+  --text: #1a1018;
+  --text-soft: #382a36;
+  --muted: #6d5a68;
+  --danger: #b3261e;
+  --danger-soft: #fbeceb;
+  --warning: #7f6112;
+}
+
+/* Paper — warm off-white, ink and a hint of pulp. */
+:root[data-theme="dark"][data-preset="paper"] {
+  color-scheme: dark;
+  --bg: #14110c;
+  --bg-soft: #1a1610;
+  --surface: #211c15;
+  --surface-2: #28221a;
+  --surface-3: #322a20;
+  --border: #3c3327;
+  --border-strong: #524535;
+  --text: #f3ece0;
+  --text-soft: #d4c8b6;
+  --muted: #a3968a;
+  --danger: #ff8a7a;
+  --danger-soft: #3a1f1a;
+  --warning: #e4c477;
+}
+
+:root[data-theme="light"][data-preset="paper"] {
+  color-scheme: light;
+  --bg: #f6f1e7;
+  --bg-soft: #efe9dd;
+  --surface: #fffdf8;
+  --surface-2: #f5efe4;
+  --surface-3: #eae2d4;
+  --border: #e0d6c5;
+  --border-strong: #cbbba3;
+  --text: #1a1611;
+  --text-soft: #3a332a;
+  --muted: #6f655a;
+  --danger: #b3261e;
+  --danger-soft: #fbeceb;
+  --warning: #7d6113;
+}
+
+/* ---------- shape, density, motion ---------- */
+/* Corner scale: one pair of tokens, three personalities. */
+:root[data-corners="sharp"] {
+  --radius: 3px;
+  --radius-sm: 2px;
+}
+
+:root[data-corners="round"] {
+  --radius: 16px;
+  --radius-sm: 11px;
+}
+
+/* A hard stop for motion that the OS preference cannot express: some users
+   want the launcher still and the rest of the desktop animated. */
+:root[data-motion="off"] *,
+:root[data-motion="off"] *::before,
+:root[data-motion="off"] *::after {
+  transition: none !important;
+  animation: none !important;
 }
 
 * {

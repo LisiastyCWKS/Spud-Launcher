@@ -5,6 +5,7 @@ import type {
   AccountView,
   AiStatus,
   AuthStatus,
+  BackgroundFile,
   CrashAnalysis,
   DedupeReport,
   DetectedInstance,
@@ -213,6 +214,13 @@ export const api = {
     toggle: (show?: boolean) =>
       invoke<boolean>("overlay_toggle", { show: show ?? null }),
     close: () => invoke<boolean>("overlay_close"),
+  },
+  appearance: {
+    backgrounds: () => invoke<BackgroundFile[]>("backgrounds_list"),
+    /** `data:` URL for one image, or null when it vanished. */
+    background: (name: string) =>
+      invoke<string | null>("background_data", { name }),
+    openBackgrounds: () => invoke<string>("backgrounds_open_folder"),
   },
   window: {
     state: () => invoke<WindowState>("window_state"),

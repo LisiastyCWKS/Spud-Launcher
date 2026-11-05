@@ -9,6 +9,7 @@
 //!
 //! Everything else in the workspace depends on these types, never the reverse.
 
+pub mod appearance;
 pub mod error;
 pub mod hardware;
 pub mod instance;
@@ -21,6 +22,7 @@ pub mod plugin;
 pub mod settings;
 pub mod version;
 
+pub use appearance::BackgroundFile;
 pub use error::{CoreError, Result};
 pub use instance::{
     GameSpec, InstanceConfig, JavaMode, JavaSettings, LoaderKind, NewInstance, TuningState,

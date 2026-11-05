@@ -8,7 +8,7 @@ Minimalistyczny, szybki launcher Minecrafta napisany w Rust i Tauri v2 — inspi
 
 Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut w tle, brak dodatkowych procesów podczas gry i przewidywalny, czytelny kod podzielony na warstwy.
 
-> **Status weryfikacji:** frontend (`ui`) przechodzi `tsc --noEmit` i `vite build`. Backend kompiluje się czysto (`cargo check --workspace`, `cargo build --workspace` bez błędów i ostrzeżeń na Windows 11, Rust 1.99.1), a `cargo test --workspace` przechodzi 91 testów. Sprawdzone end-to-end na żywej sieci i na zbudowanym exe: konto offline (nick → UUID → start legacy), `optimization_install` na Fabric 1.21.1 (10 plików), start gry — Minecraft 26.3 na Fabric 0.20.1 wczytał 64 mody i doszedł do menu — oraz nowy cykl zarządzania procesem: Play zmienia się w **Stop** (`Running · pid`), druga kopia tej samej instancji jest odrzucana, dwie różne instancje startują równolegle, a Stop zamyka grę przez `WM_CLOSE` w 0,65 s i nie rusza drugiej. Usuwanie instancji przechodzi przez `instance_delete`; działającą grę komenda zatrzymuje przed skasowaniem katalogu. Import z innego launchera sprawdzony na profilu Modrinth App („Fabric 26.3”, 32 mody, 55,8 MB): skan odczytał wersję i loader z `logs/latest.log`, bo Modrinth App nie zapisuje żadnego pliku metadanych, a import utworzył instancję z modami, configami, resource packami, shaderami, światami i `options.txt`. Eksport i import sprawdzone w obie strony na tej samej instancji: `.zip` (96 plików, 27,3 MB) wrócił jako instancja z 32 modami, 28 configami, 31 plikami światów, `options.txt` i `servers.dat`, bez `session.lock`; `.mrpack` (27,3 MB) wrócił z metadanymi odczytanymi wyłącznie z `modrinth.index.json`, a paczka z linkiem CDN do Sodium pobrała jar i zgodziła się z SHA-1 co do znaku. Logowanie Microsoft sprawdzone do granicy serwera AAD: `client_id` z Settings trafia do żądania, a zły identyfikator wraca jako `AADSTS700038`, nie `MissingClientId`. Nieprzetestowane pozostają: instalacja Forge/NeoForge, pełne logowanie realnym `client_id`, pobranie Javy 8 przez Adoptium i Rich Presence na prawdziwym `application id`. Stare JSON-y z regułami `disallow` (alpha 1.0) parsują się i instalują poprawnie. Interfejs użytkownika jest na razie w języku angielskim.
+> **Status weryfikacji:** frontend (`ui`) przechodzi `tsc --noEmit` i `vite build`. Backend kompiluje się czysto (`cargo check --workspace`, `cargo build --workspace` bez błędów i ostrzeżeń na Windows 11, Rust 1.99.1), a `cargo test --workspace` przechodzi 101 testów. Sprawdzone end-to-end na żywej sieci i na zbudowanym exe: konto offline (nick → UUID → start legacy), `optimization_install` na Fabric 1.21.1 (10 plików), start gry — Minecraft 26.3 na Fabric 0.20.1 wczytał 64 mody i doszedł do menu — oraz nowy cykl zarządzania procesem: Play zmienia się w **Stop** (`Running · pid`), druga kopia tej samej instancji jest odrzucana, dwie różne instancje startują równolegle, a Stop zamyka grę przez `WM_CLOSE` w 0,65 s i nie rusza drugiej. Usuwanie instancji przechodzi przez `instance_delete`; działającą grę komenda zatrzymuje przed skasowaniem katalogu. Import z innego launchera sprawdzony na profilu Modrinth App („Fabric 26.3”, 32 mody, 55,8 MB): skan odczytał wersję i loader z `logs/latest.log`, bo Modrinth App nie zapisuje żadnego pliku metadanych, a import utworzył instancję z modami, configami, resource packami, shaderami, światami i `options.txt`. Eksport i import sprawdzone w obie strony na tej samej instancji: `.zip` (96 plików, 27,3 MB) wrócił jako instancja z 32 modami, 28 configami, 31 plikami światów, `options.txt` i `servers.dat`, bez `session.lock`; `.mrpack` (27,3 MB) wrócił z metadanymi odczytanymi wyłącznie z `modrinth.index.json`, a paczka z linkiem CDN do Sodium pobrała jar i zgodziła się z SHA-1 co do znaku. Logowanie Microsoft sprawdzone do granicy serwera AAD: `client_id` z Settings trafia do żądania, a zły identyfikator wraca jako `AADSTS700038`, nie `MissingClientId`. Nieprzetestowane pozostają: instalacja Forge/NeoForge, pełne logowanie realnym `client_id`, pobranie Javy 8 przez Adoptium i Rich Presence na prawdziwym `application id`. Stare JSON-y z regułami `disallow` (alpha 1.0) parsują się i instalują poprawnie. Interfejs użytkownika jest na razie w języku angielskim.
 
 ---
 
@@ -34,6 +34,7 @@ Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut 
 - [Analiza crashy (AI)](#analiza-crashy-ai)
 - [Synchronizacja w chmurze](#synchronizacja-w-chmurze)
 - [Overlay w grze](#overlay-w-grze)
+- [Personalizacja wyglądu](#personalizacja-wyglądu)
 - [Discord Rich Presence](#discord-rich-presence)
 - [Dane launchera](#dane-launchera)
 - [Format `instance.json`](#format-instancejson)
@@ -127,6 +128,7 @@ Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut 
 - React 18 + TypeScript, bez biblioteki animacji — cała warstwa ruchu to CSS.
 - Ruch trzyma się jednego rytmu: tokeny czasu i krzywych (`--dur-1…4`, `--ease-out`, `--ease-spring`, `--ease-in-out`) w `theme.css`, animacje w jednej sekcji `app.css`. Karty instancji, wyniki Modrinth i wiersze kont wchodzą kaskadą (`--i` → `animation-delay`), zmiana widoku odtwarza wejście dzięki kluczowanemu wrapperowi `.view`, a ładowanie zamiast pojedynczego spinnera pokazuje karty-szkielety z połyskiem. `prefers-reduced-motion: reduce` wyłącza całą warstwę jednym regułem w `theme.css`.
 - Motywy ciemny, jasny i systemowy, przełączane bez przeładowania; preferencja zapamiętywana lokalnie (`localStorage`, klucz `spud.theme`).
+- **Personalizacja** — pięć palet, gęstość, zaokrąglenia, szerokości kolumn, wyłącznik ruchu i własne tło z `backgrounds/`. Wszystko jako zmienne CSS i atrybuty `data-*` na `<html>`; żaden komponent nie zna motywu. Ustawienia w `settings.json`, podgląd na żywo bez zapisu. Szczegóły: [`docs/appearance.md`](docs/appearance.md).
 - **Własny kolor akcentu** — paleta ośmiu presetów plus dowolny kolor z natywnego pickera albo pola hex i suwaków HSL. Z jednego odcienia liczone są cztery zmienne motywu (`--accent`, `--accent-strong`, `--accent-ink`, `--focus`); jasność jest przycinana osobno dla motywu ciemnego (52–74 %) i jasnego (26–40 %), a kolor tekstu na akcencie wybiera kontrast WCAG, nie zgadywanie. Kolor trzymany jest w `localStorage` (klucz `spud.accent`), więc działa per maszyna i wraca po restarcie; „Reset to spud green” przywraca domyślną zieleń.
 - **Pełny ekran** — `F11` przełącza, `Esc` wychodzi (o ile nie jest otwarte okno dialogowe). Start gry najpierw zdejmuje pełny ekran, a potem — jeśli włączysz `close_on_launch` — minimalizuje launcher; po wyjściu z gry okno wraca i dostaje fokus (`restore_on_exit`). Ikona w pasku górnym pokazuje aktualny stan, zdarzenie `window://fullscreen` trzyma UI w zgodzie z backendem.
 - Lista instancji, widok szczegółów, kreator nowej instancji, panel Modrinth, panel kont, ustawienia.
@@ -218,6 +220,7 @@ spud-launcher/
 │   ├── launcher-core/
 │   │   └── src/
 │   │       ├── error.rs           # CoreError, atomowy zapis JSON, kontekst IO
+│   │       ├── appearance.rs      # lista teł, walidacja nazw, MIME, data: URL
 │   │       ├── paths.rs           # układ katalogów, slugify, tryb portable
 │   │       ├── instance.rs        # InstanceConfig, NewInstance, walidacja id, safe_join
 │   │       ├── settings.rs        # LauncherSettings, Theme, sanityzacja zakresów
@@ -270,6 +273,8 @@ spud-launcher/
 │           ├── transfer.rs        # eksport/import .zip i .mrpack
 │           ├── launchers.rs       # wykrywanie i import z innych launcherów
 │           ├── friends.rs         # presence w folderze współdzielonym
+│           ├── overlay.rs         # okno overlaya, globalny skrót, liczniki
+│           ├── appearance.rs      # tła UI: lista, odczyt, otwarcie folderu
 │           └── sync.rs            # backup/restore instancji na zdalny nośnik
 └── ui/
     ├── package.json
@@ -280,9 +285,12 @@ spud-launcher/
         ├── main.tsx
         ├── App.tsx
         ├── hooks/useTheme.ts
+        ├── hooks/useAccent.ts
+        ├── hooks/useAppearance.ts # preset/gęstość/tło → zmienne CSS
         ├── lib/api.ts             # wrappers na invoke/listen
         ├── lib/types.ts           # lustro typów z Rusta
         ├── lib/format.ts
+        ├── lib/color.ts           # paleta akcentu, HSL ↔ hex, kontrast WCAG
         ├── styles/theme.css
         ├── styles/app.css
         └── components/
@@ -293,6 +301,8 @@ spud-launcher/
             ├── ModrinthPanel.tsx
             ├── AccountsPanel.tsx
             ├── SettingsPanel.tsx
+            ├── AppearancePanel.tsx
+            ├── AccentPicker.tsx
             ├── ConsolePanel.tsx
             ├── DiagnosticsPanel.tsx
             ├── ImportPanel.tsx
@@ -439,7 +449,7 @@ Certyfikat OV/EV (Certum, Sectigo, SSL.com) jest płatny; EV zdejmuje ostrzeżen
 cargo test
 ```
 
-Testy obejmują m.in. `slugify`, odrzucanie trawersji w `safe_join`, parsowanie wersji Javy, wybór runtime i reguły wersji. Nowe warstwy mają własne zestawy: magazyn modów (linki, GC, fallback na kopię), strojenie sprzętowe (dobór heapu i flag), wtyczki (walidacja manifestu, izolacja błędów), analiza crashy AI (heurystyki, redakcja, walidacja konfiguracji) oraz synchronizacja (push/pull, deduplikacja, retencja, weryfikacja hasha, `safe_key`), a także liczniki overlaya (różnica czasu CPU, odrzucenie cofniętego licznika, brak wymyślonego 0%). Razem 91 testów w workspace.
+Testy obejmują m.in. `slugify`, odrzucanie trawersji w `safe_join`, parsowanie wersji Javy, wybór runtime i reguły wersji. Nowe warstwy mają własne zestawy: magazyn modów (linki, GC, fallback na kopię), strojenie sprzętowe (dobór heapu i flag), wtyczki (walidacja manifestu, izolacja błędów), analiza crashy AI (heurystyki, redakcja, walidacja konfiguracji) oraz synchronizacja (push/pull, deduplikacja, retencja, weryfikacja hasha, `safe_key`), a także liczniki overlaya (różnica czasu CPU, odrzucenie cofniętego licznika, brak wymyślonego 0%), a od teraz personalizacja (walidacja nazw teł, rozpoznawanie MIME, odrzucanie trawersji, zakresy pól wyglądu). Razem 101 testów w workspace.
 
 ---
 
@@ -749,6 +759,20 @@ Sprawdzone end-to-end na Windows 11 na zbudowanym exe: okno istnieje ukryte od s
 
 ---
 
+## Personalizacja wyglądu
+
+**Settings → Appearance → Personalization**: paleta, gęstość, zaokrąglenia, szerokości kolumn i własne tło z pliku.
+
+- **Pięć palet** — Spud (bazowa, bez nadpisań), Midnight, Forest, Dusk i Paper. Preset nadpisuje tylko kolory, ma wariant ciemny i jasny, więc zmiana motywu nie gubi wyboru.
+- **Układ** — `comfortable` / `compact` (wysokość wierszy i padding), zaokrąglenia `sharp` / `soft` / `round`, szerokość sidebara 200–320 px i kolumny treści 960–1800 px. Suwaki działają na żywo, zapisują się przyciskiem **Save settings**.
+- **Tło** — obraz z `<data>/backgrounds/` (PNG, JPEG, WebP, GIF, AVIF, BMP) z regulacją widoczności 0–100 % i rozmycia 0–40 px. Obraz jest tintowany kolorem motywu, a sidebar i topbar robią się półprzezroczyste, żeby tło było w ogóle widoczne.
+- **Bez serwowania ścieżek** — komenda `background_data` przyjmuje wyłącznie nazwę pliku, odrzuca separatory, `..`, znaki kontrolne i nieznane rozszerzenia, czyta tylko z katalogu teł i zwraca `data:` URL. SVG jest wykluczony (dokument, nie obraz).
+- **Wyłącznik ruchu** — `reduce_motion` zatrzymuje wszystkie przejścia i animacje niezależnie od ustawień systemu.
+
+Pełny opis: presety, zakresy, bezpieczeństwo ścieżek, format pól i ograniczenia — [`docs/appearance.md`](docs/appearance.md).
+
+---
+
 ## Discord Rich Presence
 
 Launcher mówi do lokalnego klienta Discorda po nazwanym potoku (`\\.\pipe\discord-ipc-0` … `-9`), własnym klientem IPC — bez zależności, bez wtyczki, bez wysyłania czegokolwiek do internetu. Ramka to 4 bajty długości (little-endian) i JSON.
@@ -888,12 +912,21 @@ Wskazówki:
 
 ## Format `settings.json`
 
-Ustawienia globalne, leżą w katalogu głównym danych. Brakujące pola przyjmują wartości domyślne, a zakresy są przycinane przy wczytaniu (`concurrency` 1–32, `default_memory_mb` 512–65536, `ai_max_log_kb` 4–512, `sync_keep` 1–50).
+Ustawienia globalne, leżą w katalogu głównym danych. Brakujące pola przyjmują wartości domyślne, a zakresy są przycinane przy wczytaniu (`concurrency` 1–32, `default_memory_mb` 512–65536, `ai_max_log_kb` 4–512, `sync_keep` 1–50, `sidebar_width` 200–320, `content_width` 960–1800, `background_opacity` 0–100, `background_blur` 0–40).
 
 ```json
 {
   "schema": 1,
   "theme": "dark",
+  "theme_preset": "spud",
+  "density": "comfortable",
+  "corners": "soft",
+  "background": "",
+  "background_opacity": 32,
+  "background_blur": 14,
+  "sidebar_width": 236,
+  "content_width": 1240,
+  "reduce_motion": false,
   "locale": "pl-PL",
   "concurrency": 8,
   "default_memory_mb": 4096,
@@ -924,6 +957,15 @@ Ustawienia globalne, leżą w katalogu głównym danych. Brakujące pola przyjmu
 | Pole | Opis |
 |---|---|
 | `theme` | `system`, `dark` lub `light`. |
+| `theme_preset` | `spud`, `midnight`, `forest`, `dusk` lub `paper`. Paleta nadpisuje tylko kolory; ma wariant ciemny i jasny. |
+| `density` | `comfortable` lub `compact` — wysokość wierszy, padding kart, topbar. |
+| `corners` | `sharp`, `soft` lub `round` — skala `--radius` i `--radius-sm`. |
+| `background` | Nazwa pliku z `<data>/backgrounds/`; pusty ciąg to brak tła. Ścieżki i nieznane rozszerzenia są odrzucane przy wczytaniu. |
+| `background_opacity` | Widoczność tła 0–100. |
+| `background_blur` | Rozmycie tła 0–40 px. |
+| `sidebar_width` | Szerokość kolumny nawigacji 200–320 px. |
+| `content_width` | Maksymalna szerokość treści 960–1800 px. |
+| `reduce_motion` | Wyłącza wszystkie przejścia i animacje, niezależnie od systemu. |
 | `locale` | Tag BCP-47; pusty ciąg oznacza „jak system”. |
 | `concurrency` | Liczba równoległych pobrań. |
 | `default_memory_mb` | Domyślny `-Xmx` dla nowych instancji. |
@@ -1044,6 +1086,9 @@ Wszystkie komendy są zarejestrowane w `src-tauri/src/lib.rs`. Argumenty skalarn
 | `overlay_payload` | — | `OverlayPayload` (`instance`, `metrics`, `mods`, `mods_total`, `captured_at`) |
 | `overlay_toggle` | `show?` | `boolean` — nowy stan widoczności; jawne `true` działa też przy wyłączonym przełączniku |
 | `overlay_close` | — | `boolean` — zawsze `false` |
+| `backgrounds_list` | — | `BackgroundFile[]` (`name`, `mime`, `bytes`) — tylko `<data>/backgrounds/`, max 200 pozycji |
+| `background_data` | `name` | `string \| null` — `data:` URL jednego tła; nazwa z separatorami, `..` lub obcym rozszerzeniem jest odrzucana |
+| `backgrounds_open_folder` | — | `string` — otwiera folder teł, nie przyjmuje ścieżki |
 
 Zdarzenia postępu: `install://progress` i `mods://progress`, payload `DownloadEvent`:
 
@@ -1058,7 +1103,7 @@ Zdarzenia okna, gry i konsoli: `window://fullscreen` (payload `boolean` — laun
 
 ## Znane ograniczenia
 
-- **Zweryfikowana kompilacja i start gry.** `cargo check`, `cargo build` i `cargo test` przechodzą czysto (91 testów). End-to-end sprawdzono na żywej sieci: instalacja Fabric, konto offline, zestaw optymalizacyjny i start Minecrafta 26.3 (Fabric 0.19.5, 64 mody). Import z Modrinth App sprawdzony na profilu „Fabric 26.3” (32 mody) — skan odczytał wersję z `logs/latest.log` i skopiował zawartość do nowej instancji. Eksport i import instancji sprawdzone w obie strony dla `.zip` i `.mrpack`, w tym pobranie jara z linku CDN z weryfikacją SHA-1. Nieprzetestowane: instalacja Forge/NeoForge przez oficjalny installer (`--installClient`), odpowiedź serwera Microsoft na realnym `client_id` (samo okablowanie device code jest sprawdzone testami), pobranie Javy 8 z Adoptium, Rich Presence na prawdziwym `application id`, **realne wywołanie providera AI** (heurystyki, redakcja i walidacja konfiguracji mają testy; samo żądanie HTTP wymaga klucza) i **realny round-trip synchronizacji** (push/pull, retencja i weryfikacja hasha mają testy na `FolderProvider`; całość nie była jeszcze puszczona przez dysk sieciowy ani katalog chmury).
+- **Zweryfikowana kompilacja i start gry.** `cargo check`, `cargo build` i `cargo test` przechodzą czysto (101 testów). End-to-end sprawdzono na żywej sieci: instalacja Fabric, konto offline, zestaw optymalizacyjny i start Minecrafta 26.3 (Fabric 0.19.5, 64 mody). Import z Modrinth App sprawdzony na profilu „Fabric 26.3” (32 mody) — skan odczytał wersję z `logs/latest.log` i skopiował zawartość do nowej instancji. Eksport i import instancji sprawdzone w obie strony dla `.zip` i `.mrpack`, w tym pobranie jara z linku CDN z weryfikacją SHA-1. Nieprzetestowane: instalacja Forge/NeoForge przez oficjalny installer (`--installClient`), odpowiedź serwera Microsoft na realnym `client_id` (samo okablowanie device code jest sprawdzone testami), pobranie Javy 8 z Adoptium, Rich Presence na prawdziwym `application id`, **realne wywołanie providera AI** (heurystyki, redakcja i walidacja konfiguracji mają testy; samo żądanie HTTP wymaga klucza) i **realny round-trip synchronizacji** (push/pull, retencja i weryfikacja hasha mają testy na `FolderProvider`; całość nie była jeszcze puszczona przez dysk sieciowy ani katalog chmury).
 - **Overlay nie działa w pełnym ekranie wykluczającym i nie pokazuje FPS.** Exclusive fullscreen oddaje obraz wprost do sterownika, więc żadne okno systemowe nie narysuje się nad grą — potrzebny borderless. Prawdziwy licznik FPS wymagałby wstrzyknięcia kodu do JVM (agent/ASM), co jest kruche przy każdej aktualizacji gry; overlay pokazuje CPU, RAM i RSS, bo to da się zmierzyć z zewnątrz bez ryzyka. Na Windows okno ma `WS_EX_NOACTIVATE` (nie zabiera fokusu grze), więc nie przyjmuje klawiatury — zamyka się skrótem lub przyciskiem. Nieprzetestowane end-to-end na żywej grze: pokazanie panelu nad borderless Minecraftem na realnym sprzęcie.
 - Brak weryfikacji integralności bibliotek loadera przy każdym starcie — `ensure_version_files` dociąga tylko pliki nieobecne; podmieniony, ale istniejący plik nie jest hashowany (biblioteki Fabric nie mają sum w profilu).
 - Instalacja Forge/NeoForge zależy od zachowania oficjalnego installera (`--installClient`) i układu katalogów staging; wymaga testu na realnej wersji gry.

@@ -10,6 +10,7 @@ import type {
 } from "./lib/types";
 import { useTheme } from "./hooks/useTheme";
 import { useAccent } from "./hooks/useAccent";
+import { useAppearance, STOCK_APPEARANCE, type AppearanceSettings } from "./hooks/useAppearance";
 import { useRunning } from "./hooks/useRunning";
 import { Sidebar, type View } from "./components/Sidebar";
 import { InstanceGrid } from "./components/InstanceGrid";
@@ -26,10 +27,36 @@ import { PluginsView } from "./components/PluginsView";
 import { emitPluginEvent, reloadPlugins } from "./lib/plugins";
 import { Icon } from "./components/Icon";
 
+/**
+ * Merge the saved settings with an unsaved preview from the appearance editor.
+ *
+ * The preview never touches `settings`: leaving the panel without saving simply
+ * drops it, and the shell snaps back to what is on disk.
+ */
+function appearanceOf(
+  settings: LauncherSettings | null,
+  preview: Partial<LauncherSettings> | null,
+): AppearanceSettings {
+  const merged: Partial<LauncherSettings> = { ...(settings ?? {}), ...(preview ?? {}) };
+  return {
+    preset: merged.theme_preset ?? STOCK_APPEARANCE.preset,
+    density: merged.density ?? STOCK_APPEARANCE.density,
+    corners: merged.corners ?? STOCK_APPEARANCE.corners,
+    background: merged.background ?? STOCK_APPEARANCE.background,
+    backgroundOpacity: merged.background_opacity ?? STOCK_APPEARANCE.backgroundOpacity,
+    backgroundBlur: merged.background_blur ?? STOCK_APPEARANCE.backgroundBlur,
+    sidebarWidth: merged.sidebar_width ?? STOCK_APPEARANCE.sidebarWidth,
+    contentWidth: merged.content_width ?? STOCK_APPEARANCE.contentWidth,
+    reduceMotion: merged.reduce_motion ?? STOCK_APPEARANCE.reduceMotion,
+  };
+}
+
 export default function App() {
   const { theme, resolved, setTheme } = useTheme();
   const { accent, setAccent } = useAccent(resolved);
   const { running, refresh: refreshRunning } = useRunning();
+  /** Unsaved appearance edits, kept apart from `settings` on purpose. */
+  const [appearancePreview, setAppearancePreview] = useState<Partial<LauncherSettings> | null>(null);
 
   const [view, setView] = useState<View>("instances");
   const [instances, setInstances] = useState<InstanceSummary[]>([]);
@@ -44,6 +71,18 @@ export default function App() {
   const [progress, setProgress] = useState<DownloadEvent | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
+
+  const appearance = useMemo(
+    () => appearanceOf(settings, appearancePreview),
+    [settings, appearancePreview],
+  );
+  useAppearance(appearance);
+
+  // A preview belongs to the Settings view. Leaving it drops the unsaved look
+  // instead of letting an experiment leak into every other screen.
+  useEffect(() => {
+    if (view !== "settings") setAppearancePreview(null);
+  }, [view]);
 
   const refreshInstances = useCallback(async () => {
     try {
@@ -380,7 +419,11 @@ export default function App() {
                 accent={accent}
                 onTheme={setTheme}
                 onAccent={setAccent}
+                onPreview={(next) =>
+                  setAppearancePreview((current) => ({ ...(current ?? {}), ...next }))
+                }
                 onSaved={(next) => {
+                  setAppearancePreview(null);
                   setSettings(next);
                   void refreshAuthStatus();
                 }}

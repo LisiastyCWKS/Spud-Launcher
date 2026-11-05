@@ -95,6 +95,12 @@ pub struct LauncherSettings {
     pub sync_folder: Option<PathBuf>,
     /// How many snapshots per instance survive a push. 1–50.
     pub sync_keep: u32,
+    /// In-game overlay window. Off by default: it is a separate always-on-top
+    /// window, and nobody should get one before asking for it.
+    pub overlay_enabled: bool,
+    /// Global shortcut that shows/hides the overlay, in the
+    /// `Modifier+Key` syntax the shortcut plugin parses (`Shift+Tab`).
+    pub overlay_hotkey: String,
 }
 
 impl Default for LauncherSettings {
@@ -125,6 +131,8 @@ impl Default for LauncherSettings {
             sync_backend: SyncBackend::Folder,
             sync_folder: None,
             sync_keep: 5,
+            overlay_enabled: false,
+            overlay_hotkey: "Shift+Tab".to_string(),
         }
     }
 }
@@ -188,6 +196,16 @@ impl LauncherSettings {
             .take()
             .filter(|path| !path.as_os_str().is_empty());
         self.sync_keep = self.sync_keep.clamp(1, 50);
+        // The overlay hotkey is parsed by the shortcut plugin; an empty string
+        // would unregister silently, so it falls back to the documented default
+        // and an over-long paste is trimmed rather than shipped to the OS.
+        self.overlay_hotkey = self.overlay_hotkey.trim().to_string();
+        if self.overlay_hotkey.is_empty() {
+            self.overlay_hotkey = Self::default().overlay_hotkey;
+        }
+        if self.overlay_hotkey.len() > 64 {
+            self.overlay_hotkey.truncate(64);
+        }
         self.schema = 1;
     }
 }
@@ -209,5 +227,25 @@ mod tests {
             settings.ms_client_id.as_deref(),
             Some("00000000-0000-0000-0000-000000000000")
         );
+    }
+
+    #[test]
+    fn a_blank_overlay_hotkey_falls_back_to_the_default() {
+        let mut settings = LauncherSettings::default();
+        settings.overlay_hotkey = "   ".into();
+        settings.sanitise();
+        assert_eq!(settings.overlay_hotkey, "Shift+Tab");
+    }
+
+    #[test]
+    fn an_overlay_hotkey_is_trimmed_and_capped() {
+        let mut settings = LauncherSettings::default();
+        settings.overlay_hotkey = "  Ctrl+Shift+O  ".into();
+        settings.sanitise();
+        assert_eq!(settings.overlay_hotkey, "Ctrl+Shift+O");
+
+        settings.overlay_hotkey = "Shift+".repeat(40);
+        settings.sanitise();
+        assert_eq!(settings.overlay_hotkey.len(), 64);
     }
 }

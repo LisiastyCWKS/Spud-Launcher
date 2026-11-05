@@ -13,5 +13,7 @@
   "curseforge_api_key": null,
   "sync_backend": "folder",
   "sync_folder": null,
-  "sync_keep": 5
+  "sync_keep": 5,
+  "overlay_enabled": false,
+  "overlay_hotkey": "Shift+Tab"
 }

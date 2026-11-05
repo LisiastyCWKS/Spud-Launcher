@@ -22,8 +22,27 @@
         "fullscreen": false,
         "decorations": true,
         "transparent": false
+      },
+      {
+        "label": "overlay",
+        "title": "Spud Overlay",
+        "url": "overlay.html",
+        "width": 380,
+        "height": 540,
+        "resizable": false,
+        "maximizable": false,
+        "minimizable": false,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "focus": false,
+        "center": false
       }
     ],
+    "macOSPrivateApi": true,
     "security": {
       "csp": null
     }

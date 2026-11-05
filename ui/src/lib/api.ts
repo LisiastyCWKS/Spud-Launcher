@@ -37,6 +37,8 @@ import type {
   ModpackInstallResult,
   NewInstance,
   OptimizationResult,
+  OverlayPayload,
+  OverlayStatus,
   PresenceFile,
   PluginEntry,
   RunningGame,
@@ -203,13 +205,21 @@ export const api = {
       invoke<SyncManifest>("sync_forget_snapshot", { instanceId, file }),
     openFolder: () => invoke<string>("sync_open_folder"),
   },
+  overlay: {
+    status: () => invoke<OverlayStatus>("overlay_status"),
+    /** Live counters and the running instance; polled while the overlay is open. */
+    payload: () => invoke<OverlayPayload>("overlay_payload"),
+    /** `show: undefined` toggles. */
+    toggle: (show?: boolean) =>
+      invoke<boolean>("overlay_toggle", { show: show ?? null }),
+    close: () => invoke<boolean>("overlay_close"),
+  },
   window: {
     state: () => invoke<WindowState>("window_state"),
     setFullscreen: (fullscreen: boolean) =>
       invoke<boolean>("window_fullscreen", { fullscreen }),
   },
 };
-
 type Unlisten = () => void;
 
 export function onInstallProgress(

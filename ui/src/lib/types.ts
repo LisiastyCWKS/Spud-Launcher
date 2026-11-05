@@ -27,6 +27,10 @@ export interface LauncherSettings {
   sync_backend: SyncBackend;
   sync_folder: string | null;
   sync_keep: number;
+  /** In-game overlay window. Off by default. */
+  overlay_enabled: boolean;
+  /** Global combination that toggles it, e.g. `Shift+Tab`. */
+  overlay_hotkey: string;
 }
 
 export type AiProvider = "openai" | "anthropic";
@@ -97,6 +101,51 @@ export interface SyncPullResult {
   snapshot: SyncSnapshot;
   instance: InstanceConfig;
   files: number;
+}
+
+/** What `overlay_status` reports about the shortcut, not about the window. */
+export interface OverlayStatus {
+  enabled: boolean;
+  hotkey: string;
+  registered: boolean;
+  error: string | null;
+  window: boolean;
+  visible: boolean;
+}
+
+export interface LiveMetrics {
+  /** `null` on the first sample and on platforms without CPU counters. */
+  cpu_percent: number | null;
+  memory_total_mb: number | null;
+  memory_used_mb: number | null;
+  process_rss_mb: number | null;
+  process_id: number | null;
+}
+
+export interface OverlayInstance {
+  id: string;
+  name: string;
+  mc_version: string;
+  loader: string;
+  loader_version: string | null;
+  max_memory_mb: number;
+  uptime_secs: number;
+  pid: number;
+}
+
+export interface OverlayMod {
+  title: string;
+  version: string;
+  file_name: string;
+  bytes: number;
+}
+
+export interface OverlayPayload {
+  instance: OverlayInstance | null;
+  metrics: LiveMetrics;
+  mods: OverlayMod[];
+  mods_total: number;
+  captured_at: string;
 }
 
 /** What Settings → AI and the crash dialog need to know about the provider. */

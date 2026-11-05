@@ -8,7 +8,7 @@ Minimalistyczny, szybki launcher Minecrafta napisany w Rust i Tauri v2 — inspi
 
 Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut w tle, brak dodatkowych procesów podczas gry i przewidywalny, czytelny kod podzielony na warstwy.
 
-> **Status weryfikacji:** frontend (`ui`) przechodzi `tsc --noEmit` i `vite build`. Backend kompiluje się czysto (`cargo check --workspace`, `cargo build --workspace` bez błędów i ostrzeżeń na Windows 11, Rust 1.99.1), a `cargo test --workspace` przechodzi 83 testy. Sprawdzone end-to-end na żywej sieci i na zbudowanym exe: konto offline (nick → UUID → start legacy), `optimization_install` na Fabric 1.21.1 (10 plików), start gry — Minecraft 26.3 na Fabric 0.20.1 wczytał 64 mody i doszedł do menu — oraz nowy cykl zarządzania procesem: Play zmienia się w **Stop** (`Running · pid`), druga kopia tej samej instancji jest odrzucana, dwie różne instancje startują równolegle, a Stop zamyka grę przez `WM_CLOSE` w 0,65 s i nie rusza drugiej. Usuwanie instancji przechodzi przez `instance_delete`; działającą grę komenda zatrzymuje przed skasowaniem katalogu. Import z innego launchera sprawdzony na profilu Modrinth App („Fabric 26.3”, 32 mody, 55,8 MB): skan odczytał wersję i loader z `logs/latest.log`, bo Modrinth App nie zapisuje żadnego pliku metadanych, a import utworzył instancję z modami, configami, resource packami, shaderami, światami i `options.txt`. Eksport i import sprawdzone w obie strony na tej samej instancji: `.zip` (96 plików, 27,3 MB) wrócił jako instancja z 32 modami, 28 configami, 31 plikami światów, `options.txt` i `servers.dat`, bez `session.lock`; `.mrpack` (27,3 MB) wrócił z metadanymi odczytanymi wyłącznie z `modrinth.index.json`, a paczka z linkiem CDN do Sodium pobrała jar i zgodziła się z SHA-1 co do znaku. Logowanie Microsoft sprawdzone do granicy serwera AAD: `client_id` z Settings trafia do żądania, a zły identyfikator wraca jako `AADSTS700038`, nie `MissingClientId`. Nieprzetestowane pozostają: instalacja Forge/NeoForge, pełne logowanie realnym `client_id`, pobranie Javy 8 przez Adoptium i Rich Presence na prawdziwym `application id`. Stare JSON-y z regułami `disallow` (alpha 1.0) parsują się i instalują poprawnie. Interfejs użytkownika jest na razie w języku angielskim.
+> **Status weryfikacji:** frontend (`ui`) przechodzi `tsc --noEmit` i `vite build`. Backend kompiluje się czysto (`cargo check --workspace`, `cargo build --workspace` bez błędów i ostrzeżeń na Windows 11, Rust 1.99.1), a `cargo test --workspace` przechodzi 91 testów. Sprawdzone end-to-end na żywej sieci i na zbudowanym exe: konto offline (nick → UUID → start legacy), `optimization_install` na Fabric 1.21.1 (10 plików), start gry — Minecraft 26.3 na Fabric 0.20.1 wczytał 64 mody i doszedł do menu — oraz nowy cykl zarządzania procesem: Play zmienia się w **Stop** (`Running · pid`), druga kopia tej samej instancji jest odrzucana, dwie różne instancje startują równolegle, a Stop zamyka grę przez `WM_CLOSE` w 0,65 s i nie rusza drugiej. Usuwanie instancji przechodzi przez `instance_delete`; działającą grę komenda zatrzymuje przed skasowaniem katalogu. Import z innego launchera sprawdzony na profilu Modrinth App („Fabric 26.3”, 32 mody, 55,8 MB): skan odczytał wersję i loader z `logs/latest.log`, bo Modrinth App nie zapisuje żadnego pliku metadanych, a import utworzył instancję z modami, configami, resource packami, shaderami, światami i `options.txt`. Eksport i import sprawdzone w obie strony na tej samej instancji: `.zip` (96 plików, 27,3 MB) wrócił jako instancja z 32 modami, 28 configami, 31 plikami światów, `options.txt` i `servers.dat`, bez `session.lock`; `.mrpack` (27,3 MB) wrócił z metadanymi odczytanymi wyłącznie z `modrinth.index.json`, a paczka z linkiem CDN do Sodium pobrała jar i zgodziła się z SHA-1 co do znaku. Logowanie Microsoft sprawdzone do granicy serwera AAD: `client_id` z Settings trafia do żądania, a zły identyfikator wraca jako `AADSTS700038`, nie `MissingClientId`. Nieprzetestowane pozostają: instalacja Forge/NeoForge, pełne logowanie realnym `client_id`, pobranie Javy 8 przez Adoptium i Rich Presence na prawdziwym `application id`. Stare JSON-y z regułami `disallow` (alpha 1.0) parsują się i instalują poprawnie. Interfejs użytkownika jest na razie w języku angielskim.
 
 ---
 
@@ -33,6 +33,7 @@ Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut 
 - [Strojenie sprzętowe](#strojenie-sprzętowe)
 - [Analiza crashy (AI)](#analiza-crashy-ai)
 - [Synchronizacja w chmurze](#synchronizacja-w-chmurze)
+- [Overlay w grze](#overlay-w-grze)
 - [Discord Rich Presence](#discord-rich-presence)
 - [Dane launchera](#dane-launchera)
 - [Format `instance.json`](#format-instancejson)
@@ -113,6 +114,13 @@ Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut 
 - **Restore nigdy nie nadpisuje** lokalnej instancji: archiwum przechodzi przez import i powstaje nowa instancja.
 - **Deduplikacja i weryfikacja:** identyczne bajty nie są wysyłane drugi raz, a pobrany plik jest sprawdzany SHA-256 przed importem.
 - **`SyncProvider` jako API** — `FolderProvider` jest implementacją referencyjną; S3/Dropbox wchodzą w te same sześć metod.
+
+### Overlay w grze
+
+- **Drugie okno** — zawsze na wierzchu, przezroczyste, bez ramki: CPU, RAM, pamięć procesu gry, PID, wersja instancji, loader i lista modów. Odświeżanie raz na sekundę, tylko gdy okno jest widoczne.
+- **Globalny skrót** (domyślnie `Shift+Tab`) przez `tauri-plugin-global-shortcut`, więc działa, gdy fokus ma Minecraft. Domyślnie wyłączony, włączany w **Settings → Overlay**.
+- **Bez wstrzykiwania do JVM** — overlay czyta wyłącznie to, co da się zmierzyć z zewnątrz. Brak licznika FPS jest nazwanym ograniczeniem, nie przemilczanym.
+- **Windows bez zabierania fokusu** — style `WS_EX_NOACTIVATE` i `WS_EX_TOOLWINDOW`, więc pokazanie panelu nie zatrzymuje gry.
 
 ### Interfejs
 
@@ -431,7 +439,7 @@ Certyfikat OV/EV (Certum, Sectigo, SSL.com) jest płatny; EV zdejmuje ostrzeżen
 cargo test
 ```
 
-Testy obejmują m.in. `slugify`, odrzucanie trawersji w `safe_join`, parsowanie wersji Javy, wybór runtime i reguły wersji. Nowe warstwy mają własne zestawy: magazyn modów (linki, GC, fallback na kopię), strojenie sprzętowe (dobór heapu i flag), wtyczki (walidacja manifestu, izolacja błędów), analiza crashy AI (heurystyki, redakcja, walidacja konfiguracji) oraz synchronizacja (push/pull, deduplikacja, retencja, weryfikacja hasha, `safe_key`). Razem 83 testy w workspace.
+Testy obejmują m.in. `slugify`, odrzucanie trawersji w `safe_join`, parsowanie wersji Javy, wybór runtime i reguły wersji. Nowe warstwy mają własne zestawy: magazyn modów (linki, GC, fallback na kopię), strojenie sprzętowe (dobór heapu i flag), wtyczki (walidacja manifestu, izolacja błędów), analiza crashy AI (heurystyki, redakcja, walidacja konfiguracji) oraz synchronizacja (push/pull, deduplikacja, retencja, weryfikacja hasha, `safe_key`), a także liczniki overlaya (różnica czasu CPU, odrzucenie cofniętego licznika, brak wymyślonego 0%). Razem 91 testów w workspace.
 
 ---
 
@@ -725,6 +733,22 @@ Pełny opis: layout nośnika, polityka konfliktów, format manifestu, dodanie ba
 
 ---
 
+## Overlay w grze
+
+**Settings → Overlay**: osobne okno, zawsze na wierzchu, przezroczyste i bez ramki. Pokazuje liczniki maszyny, uruchomioną instancję i jej mody. Wywoływane globalnym skrótem, domyślnie `Shift+Tab`.
+
+- **Domyślnie wyłączony.** Zaznaczasz przełącznik, wpisujesz skrót, zapisujesz formularz — rejestracja i wyrejestrowanie dzieją się od razu, bez restartu. **Preview overlay** pokazuje okno także przy wyłączonym przełączniku.
+- **To osobne okno Tauri, nie nakładka w JVM.** Launcher nie wstrzykuje nic do procesu gry, nie czyta jej pamięci i nie może jej wysypać. Działa z każdą wersją i każdym loaderem.
+- **Panel:** nazwa instancji, wersja gry, loader, czas od startu, CPU (różnica liczników, nie migawka), RAM systemu, RSS procesu gry, `-Xmx` z `instance.json`, PID oraz lista modów z `.spud/mods.json`.
+- **Globalny skrót jest globalny.** Dopóki overlay jest włączony, gra nie dostaje tej kombinacji — to cena za działanie bez fokusu.
+- **Ograniczenia nazwane wprost:** pełny ekran wykluczający zasłania każde okno systemowe (potrzebny borderless), prawdziwy licznik FPS wymagałby wstrzyknięcia do JVM i dlatego go nie ma, na Windows okno nigdy nie dostaje fokusu (klawiatura nie działa, zamyka się skrótem lub ✕), na Linuksie przezroczystość wymaga kompozytora, a macOS pokazuje RAM bez CPU.
+
+Pełny opis: sekcje panelu, tabela ograniczeń, architektura, format ustawień i rozwiązywanie problemów — [`docs/overlay.md`](docs/overlay.md).
+
+Sprawdzone end-to-end na Windows 11 na zbudowanym exe: okno istnieje ukryte od startu, `Shift+Tab` je pokazuje, drugi `Shift+Tab` chowa, panel renderuje się z przezroczystością nad pulpitem (CPU i RAM na żywo). Nieprzetestowane: panel nad grą w trybie borderless na realnym sprzęcie oraz zachowanie na macOS i Linuksie.
+
+---
+
 ## Discord Rich Presence
 
 Launcher mówi do lokalnego klienta Discorda po nazwanym potoku (`\\.\pipe\discord-ipc-0` … `-9`), własnym klientem IPC — bez zależności, bez wtyczki, bez wysyłania czegokolwiek do internetu. Ramka to 4 bajty długości (little-endian) i JSON.
@@ -891,7 +915,9 @@ Ustawienia globalne, leżą w katalogu głównym danych. Brakujące pola przyjmu
   "ai_max_log_kb": 64,
   "sync_backend": "folder",
   "sync_folder": null,
-  "sync_keep": 5
+  "sync_keep": 5,
+  "overlay_enabled": false,
+  "overlay_hotkey": "Shift+Tab"
 }
 ```
 
@@ -920,6 +946,8 @@ Ustawienia globalne, leżą w katalogu głównym danych. Brakujące pola przyjmu
 | `sync_backend` | `folder`. Inne backendy wchodzą w to samo API `SyncProvider`, ale nie są zaimplementowane. |
 | `sync_folder` | Folder backupów instancji. Pusty ciąg jest przycinany do `null`, czyli sync wyłączony. |
 | `sync_keep` | Snapshoty na instancję, przycinane do 1–50. |
+| `overlay_enabled` | Okno overlaya i rejestracja skrótu. Domyślnie `false`. |
+| `overlay_hotkey` | Kombinacja `Modifier+Key`; puste pole wraca do `Shift+Tab`, wartość przycinana do 64 znaków. |
 
 ---
 
@@ -1012,6 +1040,10 @@ Wszystkie komendy są zarejestrowane w `src-tauri/src/lib.rs`. Argumenty skalarn
 | `sync_pull` | `instanceId`, `file` | `SyncPullResult` (`snapshot`, `instance`, `files`) — importuje jako nową instancję |
 | `sync_forget_snapshot` | `instanceId`, `file` | `SyncManifest` |
 | `sync_open_folder` | — | `string` — otwiera folder z ustawień, nie przyjmuje ścieżki |
+| `overlay_status` | — | `OverlayStatus` (`enabled`, `hotkey`, `registered`, `error`, `window`, `visible`) |
+| `overlay_payload` | — | `OverlayPayload` (`instance`, `metrics`, `mods`, `mods_total`, `captured_at`) |
+| `overlay_toggle` | `show?` | `boolean` — nowy stan widoczności; jawne `true` działa też przy wyłączonym przełączniku |
+| `overlay_close` | — | `boolean` — zawsze `false` |
 
 Zdarzenia postępu: `install://progress` i `mods://progress`, payload `DownloadEvent`:
 
@@ -1026,7 +1058,8 @@ Zdarzenia okna, gry i konsoli: `window://fullscreen` (payload `boolean` — laun
 
 ## Znane ograniczenia
 
-- **Zweryfikowana kompilacja i start gry.** `cargo check`, `cargo build` i `cargo test` przechodzą czysto (83 testy). End-to-end sprawdzono na żywej sieci: instalacja Fabric, konto offline, zestaw optymalizacyjny i start Minecrafta 26.3 (Fabric 0.19.5, 64 mody). Import z Modrinth App sprawdzony na profilu „Fabric 26.3” (32 mody) — skan odczytał wersję z `logs/latest.log` i skopiował zawartość do nowej instancji. Eksport i import instancji sprawdzone w obie strony dla `.zip` i `.mrpack`, w tym pobranie jara z linku CDN z weryfikacją SHA-1. Nieprzetestowane: instalacja Forge/NeoForge przez oficjalny installer (`--installClient`), odpowiedź serwera Microsoft na realnym `client_id` (samo okablowanie device code jest sprawdzone testami), pobranie Javy 8 z Adoptium, Rich Presence na prawdziwym `application id`, **realne wywołanie providera AI** (heurystyki, redakcja i walidacja konfiguracji mają testy; samo żądanie HTTP wymaga klucza) i **realny round-trip synchronizacji** (push/pull, retencja i weryfikacja hasha mają testy na `FolderProvider`; całość nie była jeszcze puszczona przez dysk sieciowy ani katalog chmury).
+- **Zweryfikowana kompilacja i start gry.** `cargo check`, `cargo build` i `cargo test` przechodzą czysto (91 testów). End-to-end sprawdzono na żywej sieci: instalacja Fabric, konto offline, zestaw optymalizacyjny i start Minecrafta 26.3 (Fabric 0.19.5, 64 mody). Import z Modrinth App sprawdzony na profilu „Fabric 26.3” (32 mody) — skan odczytał wersję z `logs/latest.log` i skopiował zawartość do nowej instancji. Eksport i import instancji sprawdzone w obie strony dla `.zip` i `.mrpack`, w tym pobranie jara z linku CDN z weryfikacją SHA-1. Nieprzetestowane: instalacja Forge/NeoForge przez oficjalny installer (`--installClient`), odpowiedź serwera Microsoft na realnym `client_id` (samo okablowanie device code jest sprawdzone testami), pobranie Javy 8 z Adoptium, Rich Presence na prawdziwym `application id`, **realne wywołanie providera AI** (heurystyki, redakcja i walidacja konfiguracji mają testy; samo żądanie HTTP wymaga klucza) i **realny round-trip synchronizacji** (push/pull, retencja i weryfikacja hasha mają testy na `FolderProvider`; całość nie była jeszcze puszczona przez dysk sieciowy ani katalog chmury).
+- **Overlay nie działa w pełnym ekranie wykluczającym i nie pokazuje FPS.** Exclusive fullscreen oddaje obraz wprost do sterownika, więc żadne okno systemowe nie narysuje się nad grą — potrzebny borderless. Prawdziwy licznik FPS wymagałby wstrzyknięcia kodu do JVM (agent/ASM), co jest kruche przy każdej aktualizacji gry; overlay pokazuje CPU, RAM i RSS, bo to da się zmierzyć z zewnątrz bez ryzyka. Na Windows okno ma `WS_EX_NOACTIVATE` (nie zabiera fokusu grze), więc nie przyjmuje klawiatury — zamyka się skrótem lub przyciskiem. Nieprzetestowane end-to-end na żywej grze: pokazanie panelu nad borderless Minecraftem na realnym sprzęcie.
 - Brak weryfikacji integralności bibliotek loadera przy każdym starcie — `ensure_version_files` dociąga tylko pliki nieobecne; podmieniony, ale istniejący plik nie jest hashowany (biblioteki Fabric nie mają sum w profilu).
 - Instalacja Forge/NeoForge zależy od zachowania oficjalnego installera (`--installClient`) i układu katalogów staging; wymaga testu na realnej wersji gry.
 - `CurseForge` — pole `curseforge_api_key` istnieje, ale klient API nie jest napisany. Import z CurseForge działa (czyta `minecraftinstance.json`), ale instalacja paczek z tego źródła nie.

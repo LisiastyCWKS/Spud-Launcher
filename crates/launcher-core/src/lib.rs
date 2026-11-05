@@ -14,6 +14,7 @@ pub mod hardware;
 pub mod instance;
 pub mod java;
 pub mod launch;
+pub mod metrics;
 pub mod modstore;
 pub mod paths;
 pub mod plugin;
@@ -25,5 +26,6 @@ pub use instance::{
     GameSpec, InstanceConfig, JavaMode, JavaSettings, LoaderKind, NewInstance, TuningState,
     WindowSettings,
 };
+pub use metrics::{CpuTimes, LiveMetrics, Sampler};
 pub use paths::LauncherPaths;
 pub use settings::{AiProvider, LauncherSettings, SyncBackend, Theme};

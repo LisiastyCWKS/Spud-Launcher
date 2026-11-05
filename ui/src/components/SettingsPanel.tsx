@@ -8,6 +8,7 @@ import { StoragePanel } from "./StoragePanel";
 import { PluginsPanel } from "./PluginsPanel";
 import { AiPanel } from "./AiPanel";
 import { SyncPanel } from "./SyncPanel";
+import { OverlayPanel } from "./OverlayPanel";
 
 const THEMES: Array<{ id: Theme; label: string }> = [
   { id: "system", label: "System" },
@@ -369,6 +370,16 @@ export function SettingsPanel({
           control. Restores arrive as a new instance, so two machines never overwrite each other.
         </p>
         {draft ? <SyncPanel settings={draft} patch={patch} onError={setError} /> : null}
+      </section>
+
+      <section className="settings-section">
+        <h2 className="settings-title">Overlay</h2>
+        <p className="settings-sub">
+          A second window that floats over the game while you play: live counters, the running
+          instance and its mods. To read from the game window itself it needs a borderless window —
+          exclusive fullscreen always wins.
+        </p>
+        {draft ? <OverlayPanel settings={draft} patch={patch} onError={setError} /> : null}
       </section>
 
       <section className="settings-section">

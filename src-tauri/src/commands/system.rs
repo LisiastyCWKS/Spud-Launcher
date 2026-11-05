@@ -17,6 +17,7 @@ pub fn settings_get(state: State<'_, AppState>) -> LauncherSettings {
 
 #[tauri::command]
 pub fn settings_save(
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     mut settings: LauncherSettings,
 ) -> Result<LauncherSettings, String> {
@@ -28,6 +29,12 @@ pub fn settings_save(
     // A client id pasted into the UI must work without a restart.
     state.refresh_auth();
     state.refresh_presence();
+    // Same for the overlay shortcut: register/unregister without a restart. A
+    // rejected combination is not a save error — the settings stay as typed and
+    // `overlay_status` reports why the OS refused it.
+    if let Err(error) = crate::commands::overlay::apply_hotkey(&app) {
+        tracing::warn!(%error, "overlay: shortcut not applied");
+    }
     Ok(settings)
 }
 

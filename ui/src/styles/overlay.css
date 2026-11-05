@@ -1,0 +1,336 @@
+/*
+ * Overlay-only styles. Deliberately self-contained: the overlay window must not
+ * pull in the launcher's app.css, and the transparent body is the whole trick
+ * that makes the rounded panel float over the game.
+ */
+
+:root {
+  color-scheme: dark;
+  --ov-bg: rgba(10, 14, 11, 0.83);
+  --ov-surface: rgba(255, 255, 255, 0.04);
+  --ov-border: rgba(126, 226, 168, 0.18);
+  --ov-text: #e9efe9;
+  --ov-soft: #b9c6bc;
+  --ov-muted: #7e8d83;
+  --ov-accent: #7ee2a8;
+  --ov-accent-strong: #4fd68a;
+  --ov-danger: #ff8585;
+  --ov-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --ov-font:
+    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+}
+
+html,
+body,
+#overlay-root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+body {
+  overflow: hidden;
+  color: var(--ov-text);
+  font-family: var(--ov-font);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: default;
+}
+
+.mono {
+  font-family: var(--ov-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-shell {
+  height: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.ov-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--ov-border);
+  border-radius: 16px;
+  background: var(--ov-bg);
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  overflow: hidden;
+  animation: ov-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ov-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Header doubles as the drag handle (data-tauri-drag-region). */
+
+.ov-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: grab;
+}
+
+.ov-head:active {
+  cursor: grabbing;
+}
+
+.ov-mark {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--ov-soft);
+}
+
+.ov-mark-dot {
+  color: var(--ov-accent);
+}
+
+.ov-chip {
+  margin-left: auto;
+  padding: 2px 8px;
+  border: 1px solid var(--ov-border);
+  border-radius: 999px;
+  color: var(--ov-accent);
+  font-family: var(--ov-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+}
+
+.ov-close {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ov-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.ov-close:hover {
+  border-color: rgba(255, 133, 133, 0.35);
+  background: rgba(255, 133, 133, 0.12);
+  color: var(--ov-danger);
+}
+
+/* Instance block */
+
+.ov-instance {
+  padding: 12px 14px 8px;
+}
+
+.ov-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ov-meta {
+  margin: 3px 0 0;
+  color: var(--ov-muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Meters */
+
+.ov-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 14px 12px;
+}
+
+.ov-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ov-meter-top,
+.ov-mods-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ov-label {
+  color: var(--ov-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ov-value {
+  color: var(--ov-text);
+  font-family: var(--ov-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-bar {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.ov-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--ov-accent-strong), var(--ov-accent));
+  transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ov-pair {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.ov-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 9px;
+  background: var(--ov-surface);
+}
+
+.ov-stat .ov-value {
+  font-size: 12.5px;
+}
+
+/* Mods */
+
+.ov-mods {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  padding: 10px 14px 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ov-mod-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+}
+
+.ov-mod {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.035);
+}
+
+.ov-mod:last-child {
+  border-bottom: 0;
+}
+
+.ov-mod-title {
+  flex: 1;
+  min-width: 0;
+  color: var(--ov-soft);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ov-mod-version {
+  color: var(--ov-muted);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.ov-empty,
+.ov-more {
+  margin: 8px 0 0;
+  color: var(--ov-muted);
+  font-size: 11.5px;
+}
+
+.ov-more {
+  margin-top: 6px;
+  color: var(--ov-accent);
+  font-family: var(--ov-mono);
+  font-size: 10.5px;
+}
+
+/* Footer */
+
+.ov-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 14px 11px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--ov-muted);
+  font-size: 10.5px;
+}
+
+.ov-error {
+  color: var(--ov-danger);
+}
+
+.ov-foot-mark {
+  color: rgba(126, 226, 168, 0.45);
+  font-family: var(--ov-mono);
+  letter-spacing: 0.12em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-panel {
+    animation: none;
+  }
+  .ov-bar-fill {
+    transition: none;
+  }
+}

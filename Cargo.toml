@@ -1,4 +1,4 @@
-[workspace]
+﻿[workspace]
 resolver = "2"
 members = [
     "crates/launcher-core",
@@ -46,9 +46,12 @@ tempfile = "3"
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service", "crypto-rust"] }
 
 # --- tauri ---
-tauri = { version = "2", features = [] }
+# `macos-private-api` is what lets the overlay window be transparent on macOS;
+# it only disables App Store submission, which this project does not use.
+tauri = { version = "2", features = ["macos-private-api"] }
 tauri-build = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
+tauri-plugin-global-shortcut = "2"
 
 [profile.release]
 codegen-units = 1

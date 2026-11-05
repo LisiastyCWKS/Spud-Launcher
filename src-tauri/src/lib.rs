@@ -27,6 +27,7 @@ pub fn run() {
 
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(commands::overlay::plugin())
         .manage(state)
         .invoke_handler(tauri::generate_handler![
             commands::instances_list,
@@ -104,6 +105,10 @@ pub fn run() {
             commands::sync_pull,
             commands::sync_forget_snapshot,
             commands::sync_open_folder,
+            commands::overlay_status,
+            commands::overlay_payload,
+            commands::overlay_toggle,
+            commands::overlay_close,
         ]);
 
     builder
@@ -112,6 +117,9 @@ pub fn run() {
                 let _ = window.set_title("Spud Launcher");
             }
             crate::commands::friends::spawn_publisher(app.handle().clone());
+            // Registers the overlay shortcut when the settings say so and
+            // applies the Windows extended styles to the hidden overlay window.
+            crate::commands::overlay::init(app.handle());
             Ok(())
         })
         .run(tauri::generate_context!())

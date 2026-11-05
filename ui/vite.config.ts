@@ -16,5 +16,13 @@ export default defineConfig({
     sourcemap: false,
     outDir: "dist",
     emptyOutDir: true,
+    // Two entry points: the launcher itself and the in-game overlay. The
+    // overlay deliberately does not pull in the launcher's app shell.
+    rollupOptions: {
+      input: {
+        main: "index.html",
+        overlay: "overlay.html",
+      },
+    },
   },
 });

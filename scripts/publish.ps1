@@ -93,7 +93,7 @@ if ($Version) {
         Set-CargoVersion -Path $cargoToml -NewVersion $Version
         Set-JsonVersion -Path (Join-Path $root 'src-tauri\tauri.conf.json') -NewVersion $Version
         Set-JsonVersion -Path (Join-Path $root 'ui\package.json') -NewVersion $Version
-        Invoke-Native 'git' @('-C', $root, 'add', 'Cargo.toml', 'ui/package.json', 'src-tauri/tauri.conf.json')
+        Invoke-Native 'git' @('-C', $root, 'add', 'Cargo.toml', 'Cargo.lock', 'ui/package.json', 'src-tauri/tauri.conf.json')
         Invoke-Native 'git' @('-C', $root, 'commit', '-m', "Release $Version")
     }
     $current = $Version
@@ -212,6 +212,8 @@ $changeList
 | ``Spud-Launcher_${current}_x64-portable.exe`` | wersja portable, bez instalacji |
 
 Sumy SHA-256 w ``SHA256SUMS.txt``. Wymaga Windows 10/11 x64.
+
+Build nie jest podpisany certyfikatem, więc SmartScreen pokaże „Windows protected your PC” — obejście: **More info → Run anyway**.
 "@
 
 $release = $null

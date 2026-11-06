@@ -2161,7 +2161,7 @@ dependencies = [
 
 [[package]]
 name = "launcher-ai"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "launcher-core",
  "reqwest 0.12.28",
@@ -2173,7 +2173,7 @@ dependencies = [
 
 [[package]]
 name = "launcher-auth"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "hex",
@@ -2190,7 +2190,7 @@ dependencies = [
 
 [[package]]
 name = "launcher-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -2209,7 +2209,7 @@ dependencies = [
 
 [[package]]
 name = "launcher-modrinth"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "reqwest 0.12.28",
@@ -2222,7 +2222,7 @@ dependencies = [
 
 [[package]]
 name = "launcher-net"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "futures",
@@ -2242,7 +2242,7 @@ dependencies = [
 
 [[package]]
 name = "launcher-sync"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "hex",
@@ -3978,7 +3978,7 @@ dependencies = [
 
 [[package]]
 name = "spud-launcher"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "hex",

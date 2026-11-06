@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="960" height="540" role="img" aria-label="Overlay Spud Launcher na tle nocy w Minecraftcie: liczniki CPU, RAM i lista modów">
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#050a14"/>
+      <stop offset="45%" stop-color="#0a1526"/>
+      <stop offset="100%" stop-color="#0d1b12"/>
+    </linearGradient>
+    <linearGradient id="groundNight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c3a22"/>
+      <stop offset="100%" stop-color="#0a140c"/>
+    </linearGradient>
+    <linearGradient id="panelBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0b120e" stop-opacity=".95"/>
+      <stop offset="100%" stop-color="#070c09" stop-opacity=".95"/>
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#cfe6ff" stop-opacity=".38"/>
+      <stop offset="100%" stop-color="#cfe6ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="960" height="540" fill="url(#night)"/>
+  <ellipse cx="210" cy="120" rx="230" ry="180" fill="url(#moonGlow)"/>
+  <rect x="186" y="86" width="48" height="48" fill="#dce9f7" opacity=".9"/>
+
+  <g fill="#ffffff" opacity=".5">
+    <rect x="360" y="60" width="3" height="3"/><rect x="470" y="98" width="2" height="2"/>
+    <rect x="540" y="46" width="3" height="3"/><rect x="640" y="120" width="2" height="2"/>
+    <rect x="740" y="72" width="3" height="3"/><rect x="830" y="140" width="2" height="2"/>
+    <rect x="300" y="150" width="2" height="2"/><rect x="900" y="60" width="2" height="2"/>
+  </g>
+
+  <g fill="#12291a">
+    <rect x="0" y="300" width="960" height="240"/>
+  </g>
+  <path d="M0 340 L120 340 L120 316 L210 316 L210 296 L300 296 L300 330 L420 330 L420 340 L960 340 L960 540 L0 540 Z" fill="#183a22"/>
+  <rect x="0" y="360" width="960" height="180" fill="url(#groundNight)"/>
+
+  <g fill="#060f09" opacity=".9">
+    <rect x="60" y="300" width="18" height="62"/><rect x="36" y="270" width="66" height="18"/>
+    <rect x="46" y="246" width="46" height="18"/>
+    <rect x="150" y="312" width="14" height="52"/><rect x="132" y="288" width="50" height="14"/>
+    <rect x="812" y="304" width="16" height="58"/><rect x="792" y="276" width="56" height="16"/>
+  </g>
+
+  <g fill="#1b2f1a" opacity=".55">
+    <rect x="70" y="392" width="40" height="22"/><rect x="240" y="410" width="52" height="26"/>
+    <rect x="420" y="396" width="34" height="20"/><rect x="620" y="414" width="46" height="24"/>
+    <rect x="780" y="400" width="38" height="22"/>
+  </g>
+
+  <g font-family="ui-monospace, 'SFMono-Regular', Consolas, monospace">
+    <rect x="596" y="34" width="332" height="304" rx="16" fill="url(#panelBg)" stroke="#2c4a33" stroke-width="1.5"/>
+    <rect x="596" y="34" width="332" height="30" fill="#8ce74c" opacity=".06"/>
+
+    <text x="618" y="55" fill="#8ce74c" font-size="12" letter-spacing="1.8" font-weight="700">SPUD.</text>
+    <text x="672" y="55" fill="#e6f3df" font-size="12" letter-spacing=".4">fabric-26-3</text>
+    <text x="900" y="55" fill="#6f8a72" font-size="11" text-anchor="end">1.21.1</text>
+
+    <g stroke="#1e3226" stroke-width="1">
+      <line x1="606" y1="74" x2="918" y2="74"/>
+      <line x1="606" y1="196" x2="918" y2="196"/>
+    </g>
+
+    <g font-size="11.5">
+      <text x="618" y="96" fill="#7f9a84" letter-spacing=".6">CPU</text>
+      <text x="908" y="96" fill="#d7ead2" text-anchor="end">34%</text>
+      <rect x="618" y="104" width="290" height="6" rx="3" fill="#16241a"/>
+      <rect x="618" y="104" width="99" height="6" rx="3" fill="#8ce74c"/>
+
+      <text x="618" y="132" fill="#7f9a84" letter-spacing=".6">RAM</text>
+      <text x="908" y="132" fill="#d7ead2" text-anchor="end">6.2 / 16.0 GB</text>
+      <rect x="618" y="140" width="290" height="6" rx="3" fill="#16241a"/>
+      <rect x="618" y="140" width="112" height="6" rx="3" fill="#5fd6c3"/>
+
+      <text x="618" y="168" fill="#7f9a84" letter-spacing=".6">GAME PID</text>
+      <text x="908" y="168" fill="#d7ead2" text-anchor="end">14872</text>
+      <text x="618" y="187" fill="#7f9a84" letter-spacing=".6">-Xmx</text>
+      <text x="908" y="187" fill="#d7ead2" text-anchor="end">6144 MB</text>
+    </g>
+
+    <g font-size="11" fill="#9fb6a4">
+      <text x="618" y="216" fill="#7f9a84" letter-spacing=".6">MODY · 64</text>
+      <text x="618" y="238">sodium-fabric 0.6.13</text>
+      <text x="618" y="258">lithium-fabric 0.14.3</text>
+      <text x="618" y="278">ferritecore 7.0.2</text>
+      <text x="618" y="298">iris 1.8.12</text>
+      <text x="618" y="318" fill="#5d7a62">+ 60 więcej</text>
+    </g>
+  </g>
+
+  <g font-family="ui-monospace, 'SFMono-Regular', Consolas, monospace">
+    <rect x="24" y="24" width="150" height="40" rx="10" fill="#04100a" opacity=".7"/>
+    <text x="42" y="41" fill="#8ce74c" font-size="10" letter-spacing="1.6">FPS</text>
+    <text x="42" y="57" fill="#f2ffe6" font-size="16">604</text>
+
+    <rect x="376" y="478" width="208" height="34" rx="8" fill="#04100a" opacity=".72"/>
+    <text x="480" y="500" fill="#cfe3c6" font-size="12" text-anchor="middle" letter-spacing=".8">Shift + Tab</text>
+  </g>
+</svg>

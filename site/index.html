@@ -4,10 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Spud Launcher — więcej FPS w Minecraftcie, mniej klikania</title>
-<meta name="description" content="Lekki launcher Minecrafta napisany w Rust i Tauri. Izolowane instancje, Modrinth jednym kliknięciem, zestaw optymalizacyjny pod FPS, eksport paczek i import z innych launcherów." />
+<meta name="description" content="Lekki launcher Minecrafta napisany w Rust i Tauri. Izolowane instancje, Modrinth jednym kliknięciem, automatyczne strojenie JVM pod sprzęt, overlay Shift+Tab, motywy i własne tło, eksport paczek i import z innych launcherów." />
 <meta name="theme-color" content="#0a0d08" />
 <meta property="og:title" content="Spud Launcher — więcej FPS w Minecraftcie" />
-<meta property="og:description" content="Rust + Tauri, izolowane instancje, Modrinth, zestaw optymalizacyjny. Bez Electrona, bez telemetrii." />
+<meta property="og:description" content="Rust + Tauri, izolowane instancje, Modrinth, strojenie pod sprzęt, overlay Shift+Tab. Bez Electrona, bez telemetrii." />
 <meta property="og:type" content="website" />
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
 <link rel="preload" href="styles.css" as="style" />
@@ -34,6 +34,7 @@
   <nav class="nav__links" aria-label="Sekcje strony">
     <a href="#fps">FPS</a>
     <a href="#funkcje">Funkcje</a>
+    <a href="#nowe">Nowe</a>
     <a href="#zrzuty">Zrzuty</a>
     <a href="#import">Import</a>
   </nav>
@@ -219,7 +220,7 @@
       <span>procesów w tle</span>
     </div>
     <div class="band__item">
-      <strong data-count="37">37</strong>
+      <strong data-count="101">101</strong>
       <span>testów w CI</span>
     </div>
     <div class="band__item">
@@ -353,6 +354,91 @@
     </div>
   </section>
 
+  <!-- ============================== SHIPPED ============================== -->
+  <section class="section section--new" id="nowe">
+    <div class="section__head reveal" data-reveal>
+      <p class="kicker">Co doszło</p>
+      <h2>Siedem rzeczy, które launcher robi teraz sam.</h2>
+      <p class="section__lede">
+        Wszystko poniżej jest już w kodzie, w testach i w wydaniu — nie w planach na
+        przyszły kwartał. Każda funkcja ma własną stronę w dokumentacji.
+      </p>
+    </div>
+
+    <div class="newgrid">
+      <article class="newitem reveal" data-reveal>
+        <span class="newitem__n">01</span>
+        <h3>Strojenie pod twój sprzęt</h3>
+        <p>
+          Launcher czyta rdzenie, pamięć i kartę, a potem sam liczy flagi JVM w stylu
+          Aikara: G1GC, próg pauzy, regiony. <code>-Xmx</code> to połowa RAM-u z sufitem
+          12 GB, a przy grafice zintegrowanej odejmuje jeszcze 512 MB dla GPU.
+        </p>
+      </article>
+
+      <article class="newitem reveal" data-reveal data-reveal-delay="60">
+        <span class="newitem__n">02</span>
+        <h3>Magazyn modów bez duplikatów</h3>
+        <p>
+          Każdy jar trafia do wspólnego magazynu pod SHA-256 i wraca do instancji jako
+          hardlink. Ten sam Sodium w pięciu paczkach to jeden plik na dysku, a nie pięć
+          kopii. Nieużywane wpisy sprząta GC.
+        </p>
+      </article>
+
+      <article class="newitem reveal" data-reveal data-reveal-delay="120">
+        <span class="newitem__n">03</span>
+        <h3>Wtyczki z prawdziwym API</h3>
+        <p>
+          Własny panel w launcherze, własne zdarzenia, własny zapis — w JavaScripcie,
+          bez kompilowania niczego. Wtyczki są domyślnie wyłączone, a błąd jednej nie
+          przewraca reszty: pięć wyjątków i wtyczka ląduje na liście wyłączonych.
+        </p>
+      </article>
+
+      <article class="newitem reveal" data-reveal data-reveal-delay="180">
+        <span class="newitem__n">04</span>
+        <h3>Analiza crashy</h3>
+        <p>
+          Heurystyki działają offline i od razu wskazują winowajcę: brak pamięci,
+          konflikt modów, zła Java, uszkodzony jar. Model językowy wchodzi tylko po
+          twojej zgodzie na konkretny log — zredagowany, bez nicków i ścieżek, z kluczem
+          w systemowym keyringu.
+        </p>
+      </article>
+
+      <article class="newitem reveal" data-reveal data-reveal-delay="240">
+        <span class="newitem__n">05</span>
+        <h3>Backup w chmurze</h3>
+        <p>
+          Instancja leci do folderu, który już synchronizujesz — dysk sieciowy, Dropbox,
+          cokolwiek. Snapshot ma hash w nazwie i jest sprawdzany przy pobieraniu, a pull
+          <strong>nigdy nie nadpisuje</strong> lokalnej paczki: wraca jako nowa instancja.
+        </p>
+      </article>
+
+      <article class="newitem reveal" data-reveal data-reveal-delay="300">
+        <span class="newitem__n">06</span>
+        <h3>Overlay pod Shift+Tab</h3>
+        <p>
+          Panel na wierzchu gry: CPU, RAM, pamięć procesu, PID, wersja i lista modów.
+          Osobne okno Tauri, więc launcher nie wstrzykuje nic do JVM i nie może wysypać
+          gry. Domyślnie wyłączony.
+        </p>
+      </article>
+
+      <article class="newitem reveal" data-reveal data-reveal-delay="360">
+        <span class="newitem__n">07</span>
+        <h3>Wygląd pod siebie</h3>
+        <p>
+          Pięć palet w wersji ciemnej i jasnej, własna tapeta z folderu, gęstość wierszy,
+          zaokrąglenia i szerokości kolumn. Wszystko na żywo, przed zapisem; wyjście z
+          ustawień bez kliknięcia „Save” przywraca poprzedni wygląd.
+        </p>
+      </article>
+    </div>
+  </section>
+
   <!-- =============================== SHOTS =============================== -->
   <section class="section section--shots" id="zrzuty">
     <div class="section__head reveal" data-reveal>
@@ -375,6 +461,21 @@
       <figure class="shot reveal" data-reveal data-reveal-delay="160" data-lightbox>
         <img src="assets/shots/cave.svg" alt="Podziemna jaskinia z rudą w stylu blokowym" loading="lazy" width="960" height="540" />
         <figcaption><span>Jaskinia · Sodium</span><span class="shot__fps">987 FPS</span></figcaption>
+      </figure>
+
+      <figure class="shot reveal" data-reveal data-lightbox>
+        <img src="assets/shots/overlay.svg" alt="Overlay Spud Launcher na tle nocy: liczniki CPU, RAM i lista modów" loading="lazy" width="960" height="540" />
+        <figcaption><span>Overlay · Shift+Tab</span><span class="shot__fps">604 FPS</span></figcaption>
+      </figure>
+
+      <figure class="shot reveal" data-reveal data-reveal-delay="80" data-lightbox>
+        <img src="assets/shots/themes.svg" alt="Okno launchera z paletą Midnight i własną tapetą" loading="lazy" width="960" height="540" />
+        <figcaption><span>Personalizacja · 5 palet</span><span class="shot__badge">ciemny + jasny</span></figcaption>
+      </figure>
+
+      <figure class="shot reveal" data-reveal data-reveal-delay="160" data-lightbox>
+        <img src="assets/shots/tuning.svg" alt="Panel strojenia sprzętowego z wygenerowanymi flagami JVM" loading="lazy" width="960" height="540" />
+        <figcaption><span>Strojenie · auto JVM</span><span class="shot__badge">-Xmx 6 GB</span></figcaption>
       </figure>
     </div>
   </section>

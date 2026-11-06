@@ -717,6 +717,89 @@ code {
   background: #8ce74c12;
 }
 
+.shot__badge {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+  color: var(--ink-mute);
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #ffffff06;
+  white-space: nowrap;
+}
+
+/* ---------- shipped list ---------- */
+
+.section--new { padding-top: clamp(28px, 3vw, 40px); }
+
+/* A changelog of rows rather than seven more cards: the section reads as an
+   appendix, not as a second feature wall. Seven items leave a hole in any
+   multi-column grid, so the rows stay full width at every breakpoint. */
+.newgrid {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--line);
+  overflow: hidden;
+}
+
+.newitem {
+  position: relative;
+  padding: 20px 24px;
+  background: #0b110a;
+  transition: background .35s var(--ease);
+}
+
+.newitem:hover { background: #0e150c; }
+
+.newitem__n {
+  display: block;
+  margin-bottom: 6px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 11.5px;
+  letter-spacing: 1.6px;
+  color: var(--lime-deep);
+  transition: color .35s var(--ease);
+}
+
+.newitem:hover .newitem__n { color: var(--lime); }
+
+.newitem h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  letter-spacing: -.02em;
+  font-weight: 630;
+}
+
+.newitem p { margin: 0; font-size: 14px; color: var(--ink-dim); }
+
+.newitem strong { color: var(--ink); font-weight: 600; }
+
+/* Desktop: the number becomes a gutter, so the eye scans titles in one column
+   and the text never runs wider than a readable measure. */
+@media (min-width: 860px) {
+  .newitem {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    column-gap: 16px;
+    align-items: start;
+    padding: 18px 24px 20px;
+  }
+
+  .newitem__n {
+    grid-row: 1 / span 2;
+    margin: 3px 0 0;
+  }
+
+  .newitem h3,
+  .newitem p {
+    grid-column: 2;
+  }
+
+  .newitem p { max-width: 92ch; }
+}
+
 /* ---------- marquee ---------- */
 
 .marquee {

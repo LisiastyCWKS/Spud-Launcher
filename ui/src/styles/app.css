@@ -2407,6 +2407,16 @@ body::before {
     color-mix(in srgb, var(--bg-soft) 72%, transparent);
 }
 
+/* Panels that are only a dashed outline (empty states, the import dropzone)
+   normally sit on the body colour. With a wallpaper behind them that is bare
+   text on photographs, so they get the same glass as the sidebar. */
+:root[data-bg="on"] .empty,
+:root[data-bg="on"] .dropzone,
+:root[data-bg="on"] .empty.small {
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
+  backdrop-filter: blur(12px) saturate(1.02);
+}
+
 /* Compact density: same components, shorter rows. Nothing is hidden and no
    control drops below the 28 px target the launcher uses everywhere. */
 :root[data-density="compact"] .content {

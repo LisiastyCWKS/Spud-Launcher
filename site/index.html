@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Spud Launcher — więcej FPS w Minecraftcie, mniej klikania</title>
-<meta name="description" content="Lekki launcher Minecrafta napisany w Rust i Tauri. Izolowane instancje, Modrinth jednym kliknięciem, automatyczne strojenie JVM pod sprzęt, overlay Shift+Tab, motywy i własne tło, eksport paczek i import z innych launcherów." />
-<meta name="theme-color" content="#07090a" />
-<meta property="og:title" content="Spud Launcher — więcej FPS w Minecraftcie" />
-<meta property="og:description" content="Rust + Tauri, izolowane instancje, Modrinth, strojenie pod sprzęt, overlay Shift+Tab. Bez Electrona, bez telemetrii." />
+<title>Spud Launcher | Darmowy launcher Minecrafta</title>
+<meta name="description" content="Spud Launcher — darmowy launcher Minecrafta z instalacją modów z Modrintha jednym kliknięciem. Izolowane instancje, Forge, Fabric, NeoForge, automatyczna Java, strojenie JVM pod sprzęt i overlay Shift+Tab." />
+<meta name="theme-color" content="#0a0a0c" />
 <meta property="og:type" content="website" />
+<meta property="og:title" content="Spud Launcher | Darmowy launcher Minecrafta" />
+<meta property="og:description" content="Rust + Tauri, izolowane instancje, Modrinth, strojenie pod sprzęt, overlay Shift+Tab. Bez Electrona, bez telemetrii." />
+<meta property="og:locale" content="pl_PL" />
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
-<link rel="preload" href="styles.css" as="style" />
 <link rel="stylesheet" href="styles.css" />
 <noscript>
   <style>
@@ -25,28 +25,26 @@
 </head>
 <body>
 
-<div class="grid-bg" aria-hidden="true"></div>
-
-<header class="navwrap" id="nav">
+<div class="navwrap" id="nav">
   <nav class="nav" aria-label="Nawigacja">
     <a class="nav__brand" href="#top" aria-label="Spud Launcher — początek strony">
-      <img src="assets/favicon.svg" alt="" width="26" height="26" />
+      <img src="assets/favicon.svg" alt="Spud" width="28" height="28" />
       <span>Spud</span>
     </a>
     <span class="nav__sep" aria-hidden="true"></span>
     <div class="nav__links">
-      <a href="#fps">FPS</a>
       <a href="#funkcje">Funkcje</a>
-      <a href="#nowe">Nowe</a>
+      <a href="#loadery">Loadery</a>
+      <a href="#fps">FPS</a>
       <a href="#zrzuty">Zrzuty</a>
-      <a href="#import">Import</a>
     </div>
-    <a class="btn btn--primary btn--sm" href="https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest" target="_blank" rel="noreferrer">
-      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    <span class="nav__sep" aria-hidden="true"></span>
+    <a class="btn btn--primary btn--nav" href="https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest" target="_blank" rel="noreferrer">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
       Pobierz
     </a>
   </nav>
-</header>
+</div>
 
 <main id="top">
 
@@ -54,9 +52,12 @@
   <section class="hero" id="hero">
     <div class="hero__glow" aria-hidden="true"></div>
 
-    <div class="wrap hero__inner">
+    <div class="wrap wrap--wide hero__inner">
       <div class="hero__copy">
-        <p class="kicker" data-hero="1">Launcher Minecrafta</p>
+        <div class="kicker" data-hero="1">
+          <span class="kicker__line" aria-hidden="true"></span>
+          <span>Launcher Minecrafta</span>
+        </div>
 
         <h1 class="hero__title" data-hero="2">
           Więcej klatek.<br /><span class="accent">Mniej klikania.</span>
@@ -67,34 +68,40 @@
           mody z Modrintha jednym kliknięciem, trzyma każdą paczkę w osobnym folderze
           i sam dobiera Javę — bez Electrona, bez telemetrii, bez procesów widmo w tle.
         </p>
-        <p class="lead" data-hero="3">
+        <p class="lead lead--tight" data-hero="3">
           Zestaw optymalizacyjny leci razem z instancją, więc FPS idzie w górę
           od pierwszego uruchomienia, a nie po trzech wieczorach na forach.
         </p>
 
         <div class="hero__cta" data-hero="4">
-          <a class="btn btn--primary btn--lg" href="https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest" target="_blank" rel="noreferrer">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          <a class="btn btn--primary btn--lg btn--shine" href="https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest" target="_blank" rel="noreferrer">
+            <span class="btn__glow" aria-hidden="true"></span>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
             Pobierz za darmo
           </a>
-          <a class="btn btn--ghost btn--lg" href="https://github.com/LisiastyCWKS/Spud-Launcher" target="_blank" rel="noreferrer">
+          <a class="btn btn--outline btn--lg" href="https://github.com/LisiastyCWKS/Spud-Launcher" target="_blank" rel="noreferrer">
             <svg class="icon icon--dim" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.55v-2.1c-3.2.7-3.88-1.36-3.88-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.4-5.26 5.69.41.36.78 1.06.78 2.14v3.17c0 .3.2.66.8.55A11.5 11.5 0 0 0 23.5 12A11.5 11.5 0 0 0 12 .5Z"/></svg>
             Repozytorium
           </a>
         </div>
 
-        <p class="hero__meta" data-hero="5">
-          <span>Windows 10 / 11</span>
-          <span class="dot" aria-hidden="true">·</span>
+        <div class="hero__meta" data-hero="4">
+          <span class="hero__meta-item">
+            <svg class="icon icon--tiny" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12V6.75l6-1.32v6.48L3 12zm17-9v8.75l-10 .15V5.21L20 3zM3 13l6 .09v6.81l-6-1.15V13zm17 .25V22l-10-1.91V13.1l10 .15z"/></svg>
+            Windows 10 / 11
+          </span>
+          <span class="hero__dot" aria-hidden="true">·</span>
           <span>MIT</span>
-          <span class="dot" aria-hidden="true">·</span>
+          <span class="hero__dot" aria-hidden="true">·</span>
           <span>Wersja portable</span>
-        </p>
+        </div>
       </div>
 
-      <div class="hero__stage" data-hero="3" data-parallax-root>
-        <div class="hero__shot" data-parallax="16">
-          <img src="assets/shots/plains.svg" alt="Zrzut ekranu: blokowy krajobraz Minecrafta z licznikiem klatek" width="960" height="540" />
+      <div class="hero__stage" data-hero="2" data-parallax-root>
+        <div class="hero__parallax" data-parallax="14">
+          <div class="hero__frame">
+            <img src="assets/shots/plains.svg" alt="Zrzut ekranu: blokowy krajobraz Minecrafta z licznikiem klatek" width="960" height="540" />
+          </div>
         </div>
       </div>
     </div>
@@ -102,24 +109,118 @@
     <div class="hero__fade" aria-hidden="true"></div>
   </section>
 
-  <!-- =============================== STATS ================================ -->
-  <section class="stats" aria-label="Liczby">
-    <div class="wrap stats__inner">
-      <div class="stat" data-reveal>
-        <strong data-count="0">0</strong>
-        <span>procesów w tle</span>
+  <!-- =============================== FUNKCJE ============================== -->
+  <section class="section" id="funkcje">
+    <div class="wrap">
+      <header class="shead" data-reveal>
+        <div class="kicker">
+          <span class="kicker__line" aria-hidden="true"></span>
+          <span>Funkcje</span>
+        </div>
+        <h2>Wszystko, czego potrzebujesz.</h2>
+        <p class="shead__lede">Spud ogarnia nudną część, żebyś mógł po prostu grać.</p>
+      </header>
+
+      <article class="panel panel--big" data-reveal>
+        <div class="panel__copy">
+          <div class="badges">
+            <span class="badge badge--mr">Modrinth</span>
+            <span class="badge badge--fabric">Fabric</span>
+          </div>
+          <h3>Mody i paczki w środku</h3>
+          <p class="panel__text">
+            Szukanie, instalacja i aktualizacja modów, resource packów i shaderów
+            bez wychodzenia z okna. Paczki instalują się jednym kliknięciem,
+            a zależności dobierają się same — także te, o których nie wiedziałeś.
+          </p>
+        </div>
+        <div class="panel__media">
+          <img src="assets/shots/cave.svg" alt="Widok z jaskini w Minecraftcie — przykład instancji z Sodium" loading="lazy" width="960" height="540" />
+        </div>
+      </article>
+
+      <div class="cards">
+        <article class="card" data-reveal>
+          <h3>Izolowane instancje</h3>
+          <p>Każda paczka ma własny folder. Mody, światy i ustawienia jednej nie wchodzą do drugiej.</p>
+        </article>
+
+        <article class="card" data-reveal>
+          <h3>Java sama się znajdzie</h3>
+          <p>Brak Javy 21? Launcher pobiera Temurin z Adoptium, sprawdza SHA-256 i podłącza runtime do instancji.</p>
+        </article>
+
+        <article class="card" data-reveal>
+          <div class="card__head">
+            <h3>Lekki i szybki</h3>
+            <span class="badge">&lt; 8 MB</span>
+          </div>
+          <p>Otwiera się w mniej niż sekundę i prawie nie zużywa pamięci. Komputer ma ciągnąć grę, nie launcher.</p>
+        </article>
+
+        <article class="card" data-reveal>
+          <h3>Konsola na żywo</h3>
+          <p>Log gry leci do panelu w czasie rzeczywistym, z buforem i kopiowaniem jednym kliknięciem.</p>
+        </article>
+
+        <article class="card" data-reveal>
+          <div class="card__head">
+            <h3>Eksport i import paczek</h3>
+            <span class="badge">.zip</span>
+          </div>
+          <p>Cała paczka do jednego pliku — z modami albo z linkami do CDN Modrintha. Wysyłasz koledze, on klika import.</p>
+        </article>
+
+        <article class="card" data-reveal>
+          <h3>Wiele kont naraz</h3>
+          <p>Kilka kont offline i Microsoft, przełączanie bez wylogowywania. Logowanie idzie przez OAuth 2.0 device code.</p>
+        </article>
+
+        <article class="card" data-reveal>
+          <h3>Overlay Shift+Tab</h3>
+          <p>CPU, RAM, pamięć procesu, PID i lista modów na wierzchu gry. Osobne okno Tauri, więc nic nie wstrzykuje do JVM.</p>
+        </article>
+
+        <article class="card card--wide" data-reveal>
+          <div class="card__head">
+            <h3>Strojenie pod twój sprzęt</h3>
+            <span class="badge badge--lime">101 testów</span>
+          </div>
+          <p>Launcher czyta rdzenie, pamięć i kartę, a potem sam liczy flagi JVM w stylu Aikara: G1GC, próg pauzy, regiony. <code>-Xmx</code> to połowa RAM-u z sufitem 12 GB, przy grafice zintegrowanej odejmuje jeszcze 512 MB.</p>
+        </article>
       </div>
-      <div class="stat" data-reveal>
-        <strong data-count="101">101</strong>
-        <span>testów w CI</span>
-      </div>
-      <div class="stat" data-reveal>
-        <strong data-count="8">8</strong>
-        <span>MB w wersji portable</span>
-      </div>
-      <div class="stat" data-reveal>
-        <strong>MIT</strong>
-        <span>licencja, zero haczyków</span>
+    </div>
+  </section>
+
+  <!-- =============================== LOADERY ============================== -->
+  <section class="section" id="loadery">
+    <div class="wrap">
+      <header class="shead" data-reveal>
+        <div class="kicker">
+          <span class="kicker__line" aria-hidden="true"></span>
+          <span>Kompatybilność</span>
+        </div>
+        <h2>Działa z każdym dużym loaderem.</h2>
+        <p class="shead__lede">Loader wybierasz per instancja. Spud sam dobiera wersję i instaluje to, czego brakuje.</p>
+      </header>
+
+      <div class="loaders">
+        <article class="glass-card" data-reveal>
+          <h3>Vanilla</h3>
+          <p>Czysty Minecraft, każda wersja — z snapshotami włącznie.</p>
+        </article>
+        <article class="glass-card" data-reveal>
+          <h3>Forge</h3>
+          <p>Najpopularniejsza platforma modów. Dziesiątki tysięcy paczek do wyboru.</p>
+        </article>
+        <article class="glass-card" data-reveal>
+          <h3>Fabric</h3>
+          <p>Lekki i szybki. Domyślny wybór dla Sodium i spółki; Quilt też działa.</p>
+        </article>
+        <article class="glass-card" data-reveal>
+          <h3>NeoForge</h3>
+          <p>Nowoczesna, rozwijana alternatywa dla Forge. W pełni kompatybilna.</p>
+        </article>
       </div>
     </div>
   </section>
@@ -127,22 +228,25 @@
   <!-- ================================= FPS ================================ -->
   <section class="section" id="fps">
     <div class="wrap">
-      <div class="shead" data-reveal>
-        <p class="kicker">Wydajność</p>
+      <header class="shead" data-reveal>
+        <div class="kicker">
+          <span class="kicker__line" aria-hidden="true"></span>
+          <span>Wydajność</span>
+        </div>
         <h2>Klucz to nie magia. To dobry zestaw modów.</h2>
         <p class="shead__lede">
           Launcher nie rysuje klatek — robi to twoja karta. Ale instaluje zestaw
           optymalizacyjny jednym kliknięciem, zamiast kazać ci szukać dwudziestu
           jarów po forach.
         </p>
-      </div>
+      </header>
 
-      <article class="panel" data-reveal>
+      <article class="panel panel--perf" data-reveal>
         <div class="panel__copy">
-          <div class="chips">
-            <span class="chip chip--fabric">Fabric</span>
-            <span class="chip">Sodium</span>
-            <span class="chip">Lithium</span>
+          <div class="badges">
+            <span class="badge badge--fabric">Fabric</span>
+            <span class="badge badge--mr">Sodium</span>
+            <span class="badge">Lithium</span>
           </div>
           <h3>Zestaw, który robi różnicę</h3>
           <p class="panel__text">
@@ -151,10 +255,9 @@
             składania modlisty.
           </p>
           <ul class="checks">
-            <li><strong>Fabric pierwszy w kolejce.</strong> Tam Sodium działa najlepiej.</li>
-            <li><strong>Zero pracy w tle.</strong> Launcher odpala Javę i znika.</li>
-            <li><strong>Pamięć na instancję.</strong> 2 GB do 12 GB, ustawiasz raz.</li>
-            <li><strong>Bez „launcherów w launcherze”.</strong> ~8 MB portable, nie 200 MB.</li>
+            <li>Fabric pierwszy w kolejce — tam Sodium działa najlepiej.</li>
+            <li>Zero pracy w tle: launcher odpala Javę i znika.</li>
+            <li>Pamięć na instancję: 2 GB do 12 GB, ustawiasz raz.</li>
           </ul>
         </div>
 
@@ -191,151 +294,47 @@
     </div>
   </section>
 
-  <!-- =============================== FUNKCJE ============================== -->
-  <section class="section" id="funkcje">
-    <div class="wrap">
-      <div class="shead" data-reveal>
-        <p class="kicker">Funkcje</p>
-        <h2>Wszystko, co zwykle robisz ręcznie.</h2>
-        <p class="shead__lede">
-          Dziewięć rzeczy, które launcher załatwia sam — i których nie musisz już
-          robić w eksploratorze plików.
-        </p>
-      </div>
-
-      <article class="panel panel--media" data-reveal>
-        <div class="panel__copy">
-          <div class="chips">
-            <span class="chip chip--forge">Forge</span>
-            <span class="chip chip--fabric">Fabric</span>
-            <span class="chip chip--neo">NeoForge</span>
-          </div>
-          <h3>Instancje, które nie wiedzą o sobie</h3>
-          <p class="panel__text">
-            Każda paczka ma własny <code>.minecraft</code> — mody, światy i ustawienia
-            jednej nie wchodzą do drugiej. Biblioteki i assety są współdzielone, więc
-            miejsce nie znika, ale jedna zepsuta paczka nie wywraca pozostałych.
-          </p>
-        </div>
-        <div class="panel__media">
-          <img src="assets/shots/cave.svg" alt="Widok z jaskini w Minecraftcie — przykład instancji z Sodium" loading="lazy" width="960" height="540" />
-        </div>
-      </article>
-
-      <div class="cards">
-        <article class="card" data-reveal>
-          <h3>Modrinth w środku</h3>
-          <p>Szukanie, instalacja i aktualizacja modów, resource packów i shaderów bez wychodzenia z okna. Paczki instalują się jednym kliknięciem.</p>
-        </article>
-
-        <article class="card" data-reveal>
-          <h3>Java sama się znajdzie</h3>
-          <p>Brak Javy 21? Launcher pobiera Temurin z Adoptium, sprawdza SHA-256 i podłącza runtime do instancji. Nie musisz wiedzieć, która wersja jest potrzebna.</p>
-        </article>
-
-        <article class="card" data-reveal>
-          <h3>Konsola na żywo</h3>
-          <p>Log gry leci do panelu w czasie rzeczywistym, z buforem i kopiowaniem jednym kliknięciem. Crash logi czytają się same, kiedy mod się wysypie.</p>
-        </article>
-
-        <article class="card" data-reveal>
-          <h3>Eksport i import paczek</h3>
-          <p>Cała paczka do jednego pliku — <code>.zip</code> z wszystkim albo <code>.mrpack</code> z linkami do CDN Modrintha. Wysyłasz koledze, on klika import.</p>
-        </article>
-
-        <article class="card" data-reveal>
-          <h3>Wiele kont naraz</h3>
-          <p>Kilka kont offline i Microsoft, przełączanie bez wylogowywania. Logowanie Microsoft idzie przez OAuth 2.0 device code — w przeglądarce.</p>
-        </article>
-
-        <article class="card" data-reveal>
-          <h3>Lista znajomych</h3>
-          <p>Wpisujesz nick, launcher pokazuje, na jakim serwerze ktoś gra i jaką ma instancję. Paczkę można skopiować bez pytań o modlistę.</p>
-        </article>
-
-        <article class="card" data-reveal>
-          <h3>Discord Rich Presence</h3>
-          <p>Na profilu pojawia się, że grasz przez Spud Launcher — z nazwą instancji i wersją gry. Bez dodatkowych aplikacji.</p>
-        </article>
-
-        <article class="card card--wide" data-reveal>
-          <h3>Import z innych launcherów</h3>
-          <p>Prism, MultiMC, PolyMC, Modrinth App, CurseForge, ATLauncher, GDLauncher, Technic i czysty <code>.minecraft</code> — skan i nowa instancja w minutę.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
   <!-- ================================ NOWE ================================ -->
   <section class="section" id="nowe">
     <div class="wrap">
-      <div class="shead" data-reveal>
-        <p class="kicker">Co doszło</p>
-        <h2>Siedem rzeczy, które launcher robi teraz sam.</h2>
-        <p class="shead__lede">
-          Wszystko poniżej jest już w kodzie, w testach i w wydaniu — nie w planach
-          na przyszły kwartał. Każda funkcja ma własną stronę w dokumentacji.
-        </p>
-      </div>
-
-      <div class="panel panel--list" data-reveal>
-        <div class="rows">
-          <article class="row">
-            <span class="row__n">01</span>
-            <div>
-              <h3>Strojenie pod twój sprzęt</h3>
-              <p>Launcher czyta rdzenie, pamięć i kartę, a potem sam liczy flagi JVM w stylu Aikara: G1GC, próg pauzy, regiony. <code>-Xmx</code> to połowa RAM-u z sufitem 12 GB, przy grafice zintegrowanej odejmuje jeszcze 512 MB.</p>
-            </div>
-          </article>
-
-          <article class="row">
-            <span class="row__n">02</span>
-            <div>
-              <h3>Magazyn modów bez duplikatów</h3>
-              <p>Każdy jar trafia do wspólnego magazynu pod SHA-256 i wraca do instancji jako hardlink. Ten sam Sodium w pięciu paczkach to jeden plik na dysku, a nie pięć kopii. Nieużywane wpisy sprząta GC.</p>
-            </div>
-          </article>
-
-          <article class="row">
-            <span class="row__n">03</span>
-            <div>
-              <h3>Wtyczki z prawdziwym API</h3>
-              <p>Własny panel w launcherze, własne zdarzenia, własny zapis — w JavaScripcie, bez kompilowania niczego. Wtyczki są domyślnie wyłączone, a błąd jednej nie przewraca reszty: pięć wyjątków i wtyczka ląduje na liście wyłączonych.</p>
-            </div>
-          </article>
-
-          <article class="row">
-            <span class="row__n">04</span>
-            <div>
-              <h3>Analiza crashy</h3>
-              <p>Heurystyki działają offline i od razu wskazują winowajcę: brak pamięci, konflikt modów, zła Java, uszkodzony jar. Model językowy wchodzi tylko po twojej zgodzie na konkretny log — zredagowany, bez nicków i ścieżek, z kluczem w systemowym keyringu.</p>
-            </div>
-          </article>
-
-          <article class="row">
-            <span class="row__n">05</span>
-            <div>
-              <h3>Backup w chmurze</h3>
-              <p>Instancja leci do folderu, który już synchronizujesz — dysk sieciowy, Dropbox, cokolwiek. Snapshot ma hash w nazwie i jest sprawdzany przy pobieraniu, a pull <strong>nigdy nie nadpisuje</strong> lokalnej paczki: wraca jako nowa instancja.</p>
-            </div>
-          </article>
-
-          <article class="row">
-            <span class="row__n">06</span>
-            <div>
-              <h3>Overlay pod Shift+Tab</h3>
-              <p>Panel na wierzchu gry: CPU, RAM, pamięć procesu, PID, wersja i lista modów. Osobne okno Tauri, więc launcher nie wstrzykuje nic do JVM i nie może wysypać gry. Domyślnie wyłączony.</p>
-            </div>
-          </article>
-
-          <article class="row">
-            <span class="row__n">07</span>
-            <div>
-              <h3>Wygląd pod siebie</h3>
-              <p>Pięć palet w wersji ciemnej i jasnej, własna tapeta z folderu, gęstość wierszy, zaokrąglenia i szerokości kolumn. Wszystko na żywo, przed zapisem; wyjście z ustawień bez kliknięcia „Save” przywraca poprzedni wygląd.</p>
-            </div>
-          </article>
+      <header class="shead" data-reveal>
+        <div class="kicker">
+          <span class="kicker__line" aria-hidden="true"></span>
+          <span>Co doszło</span>
         </div>
+        <h2>Siedem rzeczy, które launcher robi teraz sam.</h2>
+        <p class="shead__lede">Wszystko poniżej jest już w kodzie, w testach i w wydaniu — nie w planach na przyszły kwartał.</p>
+      </header>
+
+      <div class="cards cards--new">
+        <article class="card" data-reveal>
+          <h3>Strojenie pod twój sprzęt</h3>
+          <p>Launcher czyta rdzenie, pamięć i kartę, a potem sam liczy flagi JVM w stylu Aikara: G1GC, próg pauzy, regiony.</p>
+        </article>
+        <article class="card" data-reveal>
+          <h3>Magazyn modów bez duplikatów</h3>
+          <p>Każdy jar trafia do wspólnego magazynu pod SHA-256 i wraca do instancji jako hardlink. Nieużywane wpisy sprząta GC.</p>
+        </article>
+        <article class="card" data-reveal>
+          <h3>Wtyczki z prawdziwym API</h3>
+          <p>Własny panel, zdarzenia i zapis w JavaScripcie, bez kompilowania. Pięć wyjątków i wtyczka ląduje na liście wyłączonych.</p>
+        </article>
+        <article class="card" data-reveal>
+          <h3>Analiza crashy</h3>
+          <p>Heurystyki działają offline i od razu wskazują winowajcę. Model językowy wchodzi tylko po zgodzie, z kluczem w keyringu.</p>
+        </article>
+        <article class="card" data-reveal>
+          <h3>Backup w chmurze</h3>
+          <p>Snapshot z hashem w nazwie, sprawdzany przy pobieraniu. Pull nigdy nie nadpisuje lokalnej paczki — wraca jako nowa instancja.</p>
+        </article>
+        <article class="card" data-reveal>
+          <h3>Overlay Shift+Tab</h3>
+          <p>Panel na wierzchu gry z CPU, RAM, PID i listą modów. Domyślnie wyłączony, nic nie wstrzykuje do JVM.</p>
+        </article>
+        <article class="card card--wide" data-reveal>
+          <h3>Wygląd pod siebie</h3>
+          <p>Pięć palet w wersji ciemnej i jasnej, własna tapeta z folderu, gęstość wierszy, zaokrąglenia i szerokości kolumn. Wszystko na żywo, przed zapisem; wyjście z ustawień bez kliknięcia „Save” przywraca poprzedni wygląd.</p>
+        </article>
       </div>
     </div>
   </section>
@@ -343,38 +342,36 @@
   <!-- =============================== ZRZUTY =============================== -->
   <section class="section" id="zrzuty">
     <div class="wrap">
-      <div class="shead" data-reveal>
-        <p class="kicker">Z gry</p>
+      <header class="shead" data-reveal>
+        <div class="kicker">
+          <span class="kicker__line" aria-hidden="true"></span>
+          <span>Z gry</span>
+        </div>
         <h2>Tak to wygląda po instalacji.</h2>
         <p class="shead__lede">Kliknij kadr, żeby powiększyć.</p>
-      </div>
+      </header>
 
       <div class="shots">
         <figure class="shot" data-reveal data-lightbox>
           <img src="assets/shots/plains.svg" alt="Krajobraz Minecrafta w stylu blokowym z licznikiem klatek" loading="lazy" width="960" height="540" />
           <figcaption><span>Plains · 64 mody</span><span class="tag tag--hot">1462 FPS</span></figcaption>
         </figure>
-
         <figure class="shot" data-reveal data-lightbox>
           <img src="assets/shots/nether.svg" alt="Czerwony wymiar Nether w stylu blokowym" loading="lazy" width="960" height="540" />
           <figcaption><span>Nether · shadery</span><span class="tag tag--hot">612 FPS</span></figcaption>
         </figure>
-
         <figure class="shot" data-reveal data-lightbox>
           <img src="assets/shots/cave.svg" alt="Podziemna jaskinia z rudą w stylu blokowym" loading="lazy" width="960" height="540" />
           <figcaption><span>Jaskinia · Sodium</span><span class="tag tag--hot">987 FPS</span></figcaption>
         </figure>
-
         <figure class="shot" data-reveal data-lightbox>
           <img src="assets/shots/overlay.svg" alt="Overlay Spud Launcher na tle nocy: liczniki CPU, RAM i lista modów" loading="lazy" width="960" height="540" />
           <figcaption><span>Overlay · Shift+Tab</span><span class="tag tag--hot">604 FPS</span></figcaption>
         </figure>
-
         <figure class="shot" data-reveal data-lightbox>
           <img src="assets/shots/themes.svg" alt="Okno launchera z paletą Midnight i własną tapetą" loading="lazy" width="960" height="540" />
           <figcaption><span>Personalizacja · 5 palet</span><span class="tag">ciemny + jasny</span></figcaption>
         </figure>
-
         <figure class="shot" data-reveal data-lightbox>
           <img src="assets/shots/tuning.svg" alt="Panel strojenia sprzętowego z wygenerowanymi flagami JVM" loading="lazy" width="960" height="540" />
           <figcaption><span>Strojenie · auto JVM</span><span class="tag">-Xmx 6 GB</span></figcaption>
@@ -383,80 +380,22 @@
     </div>
   </section>
 
-  <!-- =============================== IMPORT =============================== -->
-  <section class="section" id="import">
-    <div class="wrap import">
-      <div class="shead shead--split" data-reveal>
-        <div>
-          <p class="kicker">Migracja</p>
-          <h2>Twoja paczka nie zostaje za drzwiami.</h2>
-        </div>
-        <p class="shead__lede">
-          Launcher skanuje profile innych launcherów, czyta wersję gry i loader —
-          nawet gdy launcher źródłowy nie zapisuje żadnych metadanych — i tworzy
-          z nich normalne, edytowalne instancje.
-        </p>
-      </div>
-
-      <div class="formats" data-reveal>
-        <span>Prism Launcher</span>
-        <span>MultiMC</span>
-        <span>PolyMC</span>
-        <span>Modrinth App</span>
-        <span>CurseForge</span>
-        <span>ATLauncher</span>
-        <span>GDLauncher</span>
-        <span>Technic</span>
-        <span>Lunar Client</span>
-        <span>.minecraft</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================== DOWNLOAD ============================== -->
+  <!-- ================================= CTA ================================ -->
   <section class="section section--cta" id="pobierz">
     <div class="wrap">
-      <div class="shead" data-reveal>
-        <p class="kicker">Instalacja</p>
-        <h2>Gotowy? Trzy kroki.</h2>
-        <p class="shead__lede">
-          NSIS instaluje per-user, bez uprawnień administratora. Jest też MSI do
-          wdrożeń i wersja portable na pendrive.
-        </p>
-      </div>
-
-      <ol class="steps">
-        <li data-reveal>
-          <span class="steps__n">1</span>
-          <div>
-            <strong>Pobierz instalator</strong>
-            <p>Setup NSIS, MSI albo portable — z ostatniego wydania na GitHubie.</p>
-          </div>
-        </li>
-        <li data-reveal>
-          <span class="steps__n">2</span>
-          <div>
-            <strong>Utwórz instancję</strong>
-            <p>Wybierz wersję gry i loader — Fabric, Quilt, Forge, NeoForge albo czysty vanilla.</p>
-          </div>
-        </li>
-        <li data-reveal>
-          <span class="steps__n">3</span>
-          <div>
-            <strong>Kliknij Install i graj</strong>
-            <p>Launcher dociąga client jar, biblioteki i assety, a Javę dobiera sam.</p>
-          </div>
-        </li>
-      </ol>
-
       <div class="cta" data-reveal>
         <div class="cta__copy">
-          <h3>Wolny launcher, otwarty kod.</h3>
-          <p>Build jest publiczny — możesz go sprawdzić albo zbudować sam. SmartScreen pokaże „Windows protected your PC”, dopóki plik nie zbierze reputacji: <em>More info → Run anyway</em>.</p>
+          <div class="kicker">
+            <span class="kicker__line" aria-hidden="true"></span>
+            <span>Zaczynamy</span>
+          </div>
+          <h2>Gotowy do gry?</h2>
+          <p>Darmowy, bez konta przy pobieraniu. Auto-aktualizacje trzymają go na bieżąco bez twojego udziału.</p>
         </div>
-        <a class="btn btn--primary btn--lg" href="https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest" target="_blank" rel="noreferrer">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Ostatnie wydanie
+        <a class="btn btn--primary btn--lg btn--shine" href="https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest" target="_blank" rel="noreferrer">
+          <span class="btn__glow" aria-hidden="true"></span>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Pobierz za darmo
         </a>
       </div>
     </div>
@@ -465,24 +404,25 @@
 
 <footer class="footer">
   <div class="wrap footer__inner">
-    <div class="footer__brand">
-      <a href="#top">
-        <img src="assets/favicon.svg" alt="" width="34" height="34" />
-        <span>Spud</span>
-      </a>
-      <p>Darmowy launcher Minecrafta. Niepowiązany z Mojang.</p>
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a href="#top">
+          <img src="assets/favicon.svg" alt="" width="40" height="40" />
+          <span>Spud</span>
+        </a>
+        <p>Darmowy launcher Minecrafta. Niepowiązany z Mojang.</p>
+      </div>
+      <nav class="footer__links" aria-label="Linki">
+        <a href="#top">Start</a>
+        <a href="https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest" target="_blank" rel="noreferrer">Pobierz</a>
+        <a href="https://github.com/LisiastyCWKS/Spud-Launcher" target="_blank" rel="noreferrer">Repozytorium</a>
+        <a href="https://github.com/LisiastyCWKS/Spud-Launcher/blob/main/README.md" target="_blank" rel="noreferrer">Dokumentacja</a>
+        <a href="https://github.com/LisiastyCWKS/Spud-Launcher/issues" target="_blank" rel="noreferrer">Zgłoś błąd</a>
+      </nav>
     </div>
-
-    <nav class="footer__links" aria-label="Linki">
-      <a href="https://github.com/LisiastyCWKS/Spud-Launcher" target="_blank" rel="noreferrer">Repozytorium</a>
-      <a href="https://github.com/LisiastyCWKS/Spud-Launcher/releases" target="_blank" rel="noreferrer">Wydania</a>
-      <a href="https://github.com/LisiastyCWKS/Spud-Launcher/blob/main/README.md" target="_blank" rel="noreferrer">Dokumentacja</a>
-      <a href="https://github.com/LisiastyCWKS/Spud-Launcher/issues" target="_blank" rel="noreferrer">Zgłoś błąd</a>
-    </nav>
-
     <div class="footer__legal">
       <span>© 2026 Spud Launcher · MIT</span>
-      <span>Rust + Tauri v2</span>
+      <span>Rust + Tauri v2 · Windows 10/11</span>
     </div>
   </div>
 </footer>

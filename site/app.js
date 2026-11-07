@@ -1,205 +1,285 @@
-/* Spud Launcher landing — behaviour only. Motion lives in CSS. */
+/* ==========================================================================
+   Spud Launcher — landing behaviour
+   Vanilla ES2020, no dependencies. Everything degrades gracefully: with the
+   script blocked the page is static but complete.
+   ========================================================================== */
 (() => {
   "use strict";
 
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const $ = (sel, scope = document) => scope.querySelector(sel);
+  const $$ = (sel, scope = document) => Array.from(scope.querySelectorAll(sel));
 
-  /* ---------- scroll reveal ---------- */
-
-  const revealables = document.querySelectorAll("[data-reveal]");
-
-  if (reduceMotion || !("IntersectionObserver" in window)) {
-    revealables.forEach((el) => el.classList.add("is-visible"));
-  } else {
-    const revealer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const target = entry.target;
-          const delay = Number(target.dataset.revealDelay || 0);
-          window.setTimeout(() => target.classList.add("is-visible"), delay);
-          revealer.unobserve(target);
-        });
-      },
-      { rootMargin: "0px 0px -12% 0px", threshold: 0.12 }
-    );
-    revealables.forEach((el) => revealer.observe(el));
+  /* ------------------------------------------------------------------------
+     Header — shrink once the page leaves the top
+     ---------------------------------------------------------------------- */
+  const header = $("#header");
+  if (header) {
+    let stuck = false;
+    const syncHeader = () => {
+      const next = window.scrollY > 8;
+      if (next === stuck) return;
+      stuck = next;
+      header.classList.toggle("is-stuck", stuck);
+    };
+    syncHeader();
+    window.addEventListener("scroll", syncHeader, { passive: true });
   }
 
-  /* ---------- sticky nav ---------- */
+  /* ------------------------------------------------------------------------
+     Mobile menu
+     ---------------------------------------------------------------------- */
+  const menuBtn = $("#menu-btn");
+  const mobileMenu = $("#mobile-menu");
 
-  const nav = document.getElementById("nav");
-  const onScroll = () => nav && nav.classList.toggle("is-stuck", window.scrollY > 12);
-  onScroll();
-  window.addEventListener("scroll", onScroll, { passive: true });
+  if (menuBtn && mobileMenu) {
+    const iconUse = $("use", menuBtn);
+    const label = $(".sr-only", menuBtn);
 
-  /* ---------- pointer spotlight ---------- */
-
-  if (!reduceMotion) {
-    const root = document.documentElement;
-    let queued = false;
-    window.addEventListener(
-      "pointermove",
-      (event) => {
-        if (queued) return;
-        queued = true;
-        window.requestAnimationFrame(() => {
-          root.style.setProperty("--mx", `${event.clientX}px`);
-          root.style.setProperty("--my", `${event.clientY}px`);
-          queued = false;
-        });
-      },
-      { passive: true }
-    );
-  }
-
-  /* ---------- hero parallax ---------- */
-
-  const parallaxLayers = Array.from(document.querySelectorAll("[data-parallax]"));
-  const parallaxRoots = Array.from(document.querySelectorAll("[data-parallax-root]"));
-
-  if (!reduceMotion && parallaxLayers.length && parallaxRoots.length) {
-    let frame = 0;
-    const update = (x, y) => {
-      parallaxLayers.forEach((layer) => {
-        const depth = Number(layer.dataset.parallax || 0);
-        const dx = x * depth;
-        const dy = y * depth * 0.6;
-        layer.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
-      });
+    const setMenu = (open) => {
+      mobileMenu.hidden = !open;
+      menuBtn.setAttribute("aria-expanded", String(open));
+      if (iconUse) iconUse.setAttribute("href", open ? "#i-x" : "#i-menu");
+      if (label) label.textContent = open ? "Zamknij menu" : "Otwórz menu";
     };
 
-    parallaxRoots.forEach((root) => {
-      root.addEventListener("pointermove", (event) => {
-        if (frame) return;
-        frame = window.requestAnimationFrame(() => {
-          const rect = root.getBoundingClientRect();
-          const x = (event.clientX - rect.left) / rect.width - 0.5;
-          const y = (event.clientY - rect.top) / rect.height - 0.5;
-          update(x, y);
-          frame = 0;
-        });
-      });
-
-      root.addEventListener("pointerleave", () => update(0, 0));
+    menuBtn.addEventListener("click", () => {
+      setMenu(mobileMenu.hidden);
     });
-  }
 
-  /* ---------- number count-up ---------- */
-
-  const counters = document.querySelectorAll("[data-count]");
-
-  const runCounter = (el) => {
-    const target = Number(el.dataset.count || 0);
-    if (!Number.isFinite(target)) return;
-    if (reduceMotion) {
-      el.textContent = String(target);
-      return;
-    }
-    const duration = 1100;
-    const start = performance.now();
-    const step = (now) => {
-      const progress = Math.min((now - start) / duration, 1);
-      // easeOutExpo: fast out of the gate, settles on the number
-      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      el.textContent = String(Math.round(target * eased));
-      if (progress < 1) window.requestAnimationFrame(step);
-    };
-    window.requestAnimationFrame(step);
-  };
-
-  if ("IntersectionObserver" in window) {
-    const counterObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          runCounter(entry.target);
-          counterObserver.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.4 }
-    );
-    counters.forEach((el) => counterObserver.observe(el));
-  }
-
-  /* ---------- fps bars ---------- */
-
-  const bars = document.querySelectorAll(".fps__bar");
-  if ("IntersectionObserver" in window) {
-    const barObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add("is-visible");
-          barObserver.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.35 }
-    );
-    bars.forEach((bar) => barObserver.observe(bar));
-  } else {
-    bars.forEach((bar) => bar.classList.add("is-visible"));
-  }
-
-  /* ---------- card cursor glow ---------- */
-
-  if (!reduceMotion) {
-    document.querySelectorAll(".card").forEach((card) => {
-      card.addEventListener("pointermove", (event) => {
-        const rect = card.getBoundingClientRect();
-        card.style.setProperty("--cx", `${event.clientX - rect.left}px`);
-        card.style.setProperty("--cy", `${event.clientY - rect.top}px`);
-      });
+    mobileMenu.addEventListener("click", (event) => {
+      if (event.target.closest("a")) setMenu(false);
     });
-  }
 
-  /* ---------- lightbox ---------- */
-
-  const lightbox = document.getElementById("lightbox");
-  const lightboxImg = document.getElementById("lightbox-img");
-  const lightboxClose = document.getElementById("lightbox-close");
-  let lastFocus = null;
-
-  const openLightbox = (figure) => {
-    const image = figure.querySelector("img");
-    if (!image || !lightbox || !lightboxImg) return;
-    lastFocus = document.activeElement;
-    lightboxImg.src = image.src;
-    lightboxImg.alt = image.alt;
-    lightbox.hidden = false;
-    window.requestAnimationFrame(() => lightbox.classList.add("is-open"));
-    document.body.style.overflow = "hidden";
-    lightboxClose?.focus();
-  };
-
-  const closeLightbox = () => {
-    if (!lightbox) return;
-    lightbox.classList.remove("is-open");
-    document.body.style.overflow = "";
-    window.setTimeout(() => {
-      lightbox.hidden = true;
-      lightboxImg.src = "";
-    }, 220);
-    if (lastFocus instanceof HTMLElement) lastFocus.focus();
-  };
-
-  document.querySelectorAll("[data-lightbox]").forEach((figure) => {
-    figure.addEventListener("click", () => openLightbox(figure));
-    figure.setAttribute("tabindex", "0");
-    figure.setAttribute("role", "button");
-    figure.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openLightbox(figure);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !mobileMenu.hidden) {
+        setMenu(false);
+        menuBtn.focus();
       }
     });
-  });
 
-  lightboxClose?.addEventListener("click", closeLightbox);
-  lightbox?.addEventListener("click", (event) => {
-    if (event.target === lightbox) closeLightbox();
-  });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && lightbox && !lightbox.hidden) closeLightbox();
-  });
+    // The menu only exists below the desktop breakpoint, where .nav is hidden.
+    const desktop = window.matchMedia("(min-width: 1041px)");
+    desktop.addEventListener("change", (event) => {
+      if (event.matches) setMenu(false);
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     Mockup tabs — click + roving keyboard focus
+     ---------------------------------------------------------------------- */
+  const tablist = $(".tabs");
+  if (tablist) {
+    const tabs = $$(".tab", tablist);
+    const panels = tabs.map((tab) => document.getElementById(tab.getAttribute("aria-controls")));
+
+    const activate = (index, focus = false) => {
+      tabs.forEach((tab, i) => {
+        const selected = i === index;
+        tab.classList.toggle("is-active", selected);
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        const panel = panels[i];
+        if (panel) {
+          panel.hidden = !selected;
+          panel.classList.toggle("is-active", selected);
+        }
+      });
+      if (focus) tabs[index].focus();
+    };
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => activate(i));
+    });
+
+    tablist.addEventListener("keydown", (event) => {
+      const current = tabs.indexOf(document.activeElement);
+      if (current === -1) return;
+
+      let next = null;
+      switch (event.key) {
+        case "ArrowRight":
+        case "ArrowDown":
+          next = (current + 1) % tabs.length;
+          break;
+        case "ArrowLeft":
+        case "ArrowUp":
+          next = (current - 1 + tabs.length) % tabs.length;
+          break;
+        case "Home":
+          next = 0;
+          break;
+        case "End":
+          next = tabs.length - 1;
+          break;
+        default:
+          return;
+      }
+
+      event.preventDefault();
+      activate(next, true);
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     Scroll reveal
+     ---------------------------------------------------------------------- */
+  const revealables = $$("[data-reveal]");
+
+  if (revealables.length) {
+    if (!("IntersectionObserver" in window) || reduceMotion.matches) {
+      revealables.forEach((el) => el.classList.add("is-visible"));
+    } else {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          });
+        },
+        { rootMargin: "0px 0px -8% 0px", threshold: 0.12 },
+      );
+      revealables.forEach((el) => observer.observe(el));
+
+      reduceMotion.addEventListener("change", (event) => {
+        if (!event.matches) return;
+        revealables.forEach((el) => el.classList.add("is-visible"));
+        observer.disconnect();
+      });
+    }
+  }
+
+  /* ------------------------------------------------------------------------
+     Feature cards — pointer-tracked glow (single rAF, no debounce)
+     ---------------------------------------------------------------------- */
+  const features = $$(".feature");
+
+  if (features.length && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    let frame = 0;
+    let pending = null;
+
+    const paint = () => {
+      frame = 0;
+      if (!pending) return;
+      const { card, x, y } = pending;
+      pending = null;
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty("--mx", `${x - rect.left}px`);
+      card.style.setProperty("--my", `${y - rect.top}px`);
+    };
+
+    features.forEach((card) => {
+      card.addEventListener(
+        "pointermove",
+        (event) => {
+          pending = { card, x: event.clientX, y: event.clientY };
+          if (!frame) frame = requestAnimationFrame(paint);
+        },
+        { passive: true },
+      );
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     Lightbox
+     ---------------------------------------------------------------------- */
+  const lightbox = $("#lightbox");
+  const lightboxImg = $("#lightbox-img");
+  const lightboxClose = $("#lightbox-close");
+  const shots = $$("[data-lightbox]");
+
+  if (lightbox && lightboxImg && lightboxClose && shots.length) {
+    let lastFigure = null;
+
+    const open = (figure) => {
+      const img = $("img", figure);
+      if (!img) return;
+      lastFigure = figure;
+      lightboxImg.src = img.currentSrc || img.src;
+      lightboxImg.alt = img.alt || "";
+      lightbox.hidden = false;
+      document.body.style.overflow = "hidden";
+      // Force a frame so the transition has a start value.
+      requestAnimationFrame(() => lightbox.classList.add("is-open"));
+      lightboxClose.focus();
+    };
+
+    const close = () => {
+      lightbox.classList.remove("is-open");
+      document.body.style.overflow = "";
+      const finish = () => {
+        lightbox.hidden = true;
+        lightboxImg.removeAttribute("src");
+        lightboxImg.alt = "";
+      };
+      if (reduceMotion.matches) finish();
+      else window.setTimeout(finish, 220);
+      if (lastFigure) lastFigure.focus();
+      lastFigure = null;
+    };
+
+    shots.forEach((figure) => {
+      if (!figure.hasAttribute("tabindex")) figure.tabIndex = 0;
+      figure.setAttribute("role", "button");
+      figure.setAttribute("aria-label", "Powiększ zrzut ekranu");
+
+      figure.addEventListener("click", () => open(figure));
+      figure.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        open(figure);
+      });
+    });
+
+    lightboxClose.addEventListener("click", close);
+    lightbox.addEventListener("click", (event) => {
+      if (event.target === lightbox) close();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !lightbox.hidden) close();
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     Release version + footer year
+     ---------------------------------------------------------------------- */
+  const year = $("[data-year]");
+  if (year) year.textContent = String(new Date().getFullYear());
+
+  const releaseSlots = $$("[data-release]");
+
+  if (releaseSlots.length) {
+    const fallback = releaseSlots[0].textContent.trim();
+
+    const timeout = (ms) => {
+      if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+        return AbortSignal.timeout(ms);
+      }
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), ms);
+      return controller.signal;
+    };
+
+    fetch("https://api.github.com/repos/LisiastyCWKS/Spud-Launcher/releases/latest", {
+      headers: { accept: "application/vnd.github+json" },
+      signal: timeout(4000),
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        const tag = data && typeof data.tag_name === "string" ? data.tag_name.trim() : "";
+        if (!tag) return;
+        const display = /^v/i.test(tag) ? tag : `v${tag}`;
+        releaseSlots.forEach((slot) => {
+          slot.textContent = display;
+        });
+      })
+      .catch(() => {
+        // Offline, rate-limited or blocked — the static markup already shows
+        // a real version, so there is nothing to repair.
+        releaseSlots.forEach((slot) => {
+          if (!slot.textContent.trim()) slot.textContent = fallback;
+        });
+      });
+  }
 })();

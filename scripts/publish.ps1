@@ -19,13 +19,13 @@
     Credential Manager entry for github.com - so nothing is stored in the repo.
 
 .PARAMETER Version
-    New version to publish, e.g. 0.2.0. Omit to rebuild the current one.
+    New version to publish, e.g. 3.0.0. Omit to rebuild the current one.
 
 .PARAMETER SkipBuild
     Reuse whatever is already in target/release instead of rebuilding.
 
 .EXAMPLE
-    powershell -ExecutionPolicy Bypass -File scripts\publish.ps1 -Version 0.2.0
+    powershell -ExecutionPolicy Bypass -File scripts\publish.ps1 -Version 3.0.0
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File scripts\publish.ps1 -SkipBuild

@@ -1,16 +1,90 @@
+<div align="center">
+
+<img src="site/assets/favicon.svg" width="76" height="76" alt="" />
+
 # Spud Launcher
 
+**Launcher Minecrafta, który nie stoi na drodze.** Rust + Tauri v2, izolowane instancje, wspólny magazyn plików i instalacja modów jednym kliknięciem.
+
 [![CI](https://github.com/LisiastyCWKS/Spud-Launcher/actions/workflows/ci.yml/badge.svg)](https://github.com/LisiastyCWKS/Spud-Launcher/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/LisiastyCWKS/Spud-Launcher)](https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/LisiastyCWKS/Spud-Launcher?color=8ce74c&label=release)](https://github.com/LisiastyCWKS/Spud-Launcher/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-8ce74c.svg)](LICENSE)
+[![Tauri](https://img.shields.io/badge/Tauri-2.x-24C8DB?logo=tauri&logoColor=white)](https://tauri.app)
+[![Rust](https://img.shields.io/badge/Rust-1.77%2B-000000?logo=rust&logoColor=white)](https://www.rust-lang.org)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
 
-Minimalistyczny, szybki launcher Minecrafta napisany w Rust i Tauri v2 — inspirowany Prism Launcherem i Modrinth App. Każda instancja ma odizolowany katalog `.minecraft`, współdzielone biblioteki i assety trafiają do wspólnego drzewa, a mody, paczki, resource packi i shadery instaluje się jednym kliknięciem z Modrintha.
+[Strona projektu](https://lisiastycwks.github.io/Spud-Launcher/) · [Wydania](https://github.com/LisiastyCWKS/Spud-Launcher/releases) · [Zmiany](CHANGELOG.md) · [Dokumentacja](docs/)
 
-Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut w tle, brak dodatkowych procesów podczas gry i przewidywalny, czytelny kod podzielony na warstwy.
-
-> **Status weryfikacji:** frontend (`ui`) przechodzi `tsc --noEmit` i `vite build`. Backend kompiluje się czysto (`cargo check --workspace`, `cargo build --workspace` bez błędów i ostrzeżeń na Windows 11, Rust 1.99.1), a `cargo test --workspace` przechodzi 101 testów. Sprawdzone end-to-end na żywej sieci i na zbudowanym exe: konto offline (nick → UUID → start legacy), `optimization_install` na Fabric 1.21.1 (10 plików), start gry — Minecraft 26.3 na Fabric 0.20.1 wczytał 64 mody i doszedł do menu — oraz nowy cykl zarządzania procesem: Play zmienia się w **Stop** (`Running · pid`), druga kopia tej samej instancji jest odrzucana, dwie różne instancje startują równolegle, a Stop zamyka grę przez `WM_CLOSE` w 0,65 s i nie rusza drugiej. Usuwanie instancji przechodzi przez `instance_delete`; działającą grę komenda zatrzymuje przed skasowaniem katalogu. Import z innego launchera sprawdzony na profilu Modrinth App („Fabric 26.3”, 32 mody, 55,8 MB): skan odczytał wersję i loader z `logs/latest.log`, bo Modrinth App nie zapisuje żadnego pliku metadanych, a import utworzył instancję z modami, configami, resource packami, shaderami, światami i `options.txt`. Eksport i import sprawdzone w obie strony na tej samej instancji: `.zip` (96 plików, 27,3 MB) wrócił jako instancja z 32 modami, 28 configami, 31 plikami światów, `options.txt` i `servers.dat`, bez `session.lock`; `.mrpack` (27,3 MB) wrócił z metadanymi odczytanymi wyłącznie z `modrinth.index.json`, a paczka z linkiem CDN do Sodium pobrała jar i zgodziła się z SHA-1 co do znaku. Logowanie Microsoft sprawdzone do granicy serwera AAD: `client_id` z Settings trafia do żądania, a zły identyfikator wraca jako `AADSTS700038`, nie `MissingClientId`. Nieprzetestowane pozostają: instalacja Forge/NeoForge, pełne logowanie realnym `client_id`, pobranie Javy 8 przez Adoptium i Rich Presence na prawdziwym `application id`. Stare JSON-y z regułami `disallow` (alpha 1.0) parsują się i instalują poprawnie. Interfejs użytkownika jest na razie w języku angielskim.
+</div>
 
 ---
+
+<table>
+<tr>
+<td width="25%" valign="top">
+
+### Instancje
+Osobny `.minecraft` dla każdej paczki. Wspólne biblioteki i assety pobierane raz.
+
+</td>
+<td width="25%" valign="top">
+
+### Modrinth + CurseForge
+Mody, modpacki, resource packi i shadery. Instalacja jednym kliknięciem, aktualizacje z SHA-1.
+
+</td>
+<td width="25%" valign="top">
+
+### Bez procesów w tle
+Jeden proces gry, zero telemetrii, zero usług. Launcher znika, gdy Minecraft startuje.
+
+</td>
+<td width="25%" valign="top">
+
+### Wygląd 3.0
+Glassmorphism, pięć palet, tryb jasny/ciemny z płynnym przejściem, edytor akcentu.
+
+</td>
+</tr>
+</table>
+
+<p align="center">
+  <img src="site/assets/shots/themes.svg" alt="Spud Launcher — podgląd interfejsu" width="49%" />
+  <img src="site/assets/shots/tuning.svg" alt="Spud Launcher — strojenie sprzętowe" width="49%" />
+</p>
+
+## Co nowego w 3.0
+
+- **Nowy system powiadomień** — stos toastów z akcjami, pauzą na hover i paskiem odliczania; każdy błąd backendu trafia też do toasta, więc nie umknie po przewinięciu.
+- **Prawdziwe potwierdzenia** — usuwanie instancji, konta i snapshotu chmury przechodzi przez własny dialog z pułapką focusu, zamiast `window.confirm`.
+- **Nowa warstwa wizualna** — skala elevacji, szkło na paskach i panelach, poświata akcentu pod shellem, mikrointerakcje przycisków, pierścienie focusu.
+- **Płynna zmiana motywu** — paleta przechodzi cross-fade w 320 ms, bez przeskoku.
+- **Responsywność** — sidebar zwija się do railu ikon poniżej 880 px, toast stack i dialogi układają się pod wąskie okna.
+- **Porządki** — i18n dla powłoki (PL/EN/DE), koniec z inline styles w banerze aktualizacji, poprawione mojibake w komentarzach CSS.
+
+Pełna lista: [CHANGELOG.md](CHANGELOG.md).
+
+## Szybki start
+
+```powershell
+git clone https://github.com/LisiastyCWKS/Spud-Launcher.git
+cd Spud-Launcher
+
+cd ui; npm install; cd ..
+
+cargo build --release -p spud-launcher
+# binarka: target/release/spud-launcher.exe
+```
+
+Tryb deweloperski (hot reload UI + backend):
+
+```powershell
+cd ui; npm run dev
+# w drugim terminalu
+cargo run -p spud-launcher
+```
+
+Wymagania: Node 20+, Rust 1.77+, na Windows WebView2 (jest w każdym aktualnym Windows 10/11). Szczegóły i paczki instalacyjne: [Wymagania](#wymagania) i [Budowanie](#budowanie).
 
 ## Spis treści
 
@@ -43,6 +117,8 @@ Projekt jest otwartoźródłowy (MIT) i nastawiony na trzy rzeczy: niski narzut 
 - [Komendy Tauri](#komendy-tauri)
 - [Znane ograniczenia](#znane-ograniczenia)
 - [Licencja](#licencja)
+
+> **Status weryfikacji:** `tsc --noEmit` i `vite build` przechodzą, `cargo build --workspace` kompiluje się czysto na Windows 11 (Rust 1.99.1), a `cargo test --workspace` daje 101 zielonych testów. Ścieżki sprawdzone na żywej sieci: konto offline, `optimization_install` na Fabric 1.21.1, start gry (64 mody, menu), cykl Play → Stop, import z Modrinth App, eksport/import `.zip` i `.mrpack`, logowanie Microsoft do granicy AAD. Nieprzetestowane: instalacja Forge/NeoForge, pełne logowanie realnym `client_id`, pobranie Javy 8 przez Adoptium, Rich Presence na prawdziwym `application id`, overlay nad grą borderless i na macOS/Linux.
 
 ---
 

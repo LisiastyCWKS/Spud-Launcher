@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, FormEvent } from "react";
 import { api } from "../lib/api";
+import { confirmDialog } from "../lib/confirm";
+import { t } from "../lib/i18n";
 import { copyText } from "../lib/format";
 import type { AccountsView, AuthStatus, DeviceCode } from "../lib/types";
 import { Icon } from "./Icon";
@@ -109,7 +111,14 @@ export function AccountsPanel({
   };
 
   const remove = async (id: string) => {
-    if (!window.confirm("Remove this account and its stored tokens?")) return;
+    const confirmed = await confirmDialog({
+      title: t("confirm.remove_account_title"),
+      description: t("confirm.remove_account_body"),
+      confirmLabel: t("common.delete"),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!confirmed) return;
     setPending(id);
     setError(null);
     try {

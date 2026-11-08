@@ -36,6 +36,7 @@ export function SettingsPanel({
   onAccent,
   onSaved,
   onPreview,
+  onError,
 }: {
   settings: LauncherSettings | null;
   theme: Theme;
@@ -44,6 +45,7 @@ export function SettingsPanel({
   onAccent: (hex: string | null) => void;
   onSaved: (settings: LauncherSettings) => void;
   onPreview: (next: Partial<LauncherSettings>) => void;
+  onError?: (cause: unknown) => void;
 }) {
   const [draft, setDraft] = useState<LauncherSettings | null>(settings);
   const [runtimes, setRuntimes] = useState<JavaRuntime[]>([]);
@@ -54,6 +56,12 @@ export function SettingsPanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  /** Inline for context, toast for the cases scrolled out of view. */
+  const fail = (cause: unknown) => {
+    setError(String(cause));
+    onError?.(cause);
+  };
 
   useEffect(() => {
     setDraft(settings);
@@ -75,7 +83,7 @@ export function SettingsPanel({
     try {
       setRuntimes(await api.java.detect());
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     } finally {
       setDetecting(false);
     }
@@ -94,7 +102,7 @@ export function SettingsPanel({
       );
       await detect();
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     } finally {
       setInstalling(null);
     }
@@ -112,7 +120,7 @@ export function SettingsPanel({
       setSaved(true);
       window.setTimeout(() => setSaved(false), 2000);
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     } finally {
       setSaving(false);
     }

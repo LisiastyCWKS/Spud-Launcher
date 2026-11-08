@@ -3,6 +3,8 @@ import type { CSSProperties } from "react";
 import { BrandMark } from "./BrandMark";
 import { Icon } from "./Icon";
 import { api } from "../lib/api";
+import { confirmDialog } from "../lib/confirm";
+import { t } from "../lib/i18n";
 import { initials, loaderLabel, relativeTime } from "../lib/format";
 import type { InstanceSummary, RunningGame } from "../lib/types";
 import type { RunningMap } from "../hooks/useRunning";
@@ -16,6 +18,8 @@ function InstanceCard({
   onOpen,
   onChanged,
   onRunningChanged,
+  onError,
+  onNotify,
 }: {
   instance: InstanceSummary;
   game: RunningGame | undefined;
@@ -23,9 +27,16 @@ function InstanceCard({
   onOpen: () => void;
   onChanged: () => void;
   onRunningChanged: () => void;
+  onError?: (cause: unknown) => void;
+  onNotify?: (title: string, detail?: string) => void;
 }) {
   const [busy, setBusy] = useState<Busy | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const fail = (cause: unknown) => {
+    setError(String(cause));
+    onError?.(cause);
+  };
 
   const install = async (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -34,8 +45,9 @@ function InstanceCard({
     try {
       await api.instances.install(instance.id);
       onChanged();
+      onNotify?.(t("toast.installed"), instance.name);
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     } finally {
       setBusy(null);
     }
@@ -48,8 +60,9 @@ function InstanceCard({
     try {
       await api.instances.launch(instance.id);
       onRunningChanged();
+      onNotify?.(t("toast.launched"), instance.name);
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     } finally {
       setBusy(null);
     }
@@ -62,8 +75,9 @@ function InstanceCard({
     try {
       await api.instances.stop(instance.id);
       onRunningChanged();
+      onNotify?.(t("toast.stopped"), instance.name);
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     } finally {
       setBusy(null);
     }
@@ -71,10 +85,14 @@ function InstanceCard({
 
   const remove = async (event: React.MouseEvent) => {
     event.stopPropagation();
-    const runningNote = game ? " The running game is stopped first." : "";
-    const confirmed = window.confirm(
-      `Delete "${instance.name}" and every file inside its .minecraft folder?${runningNote} This cannot be undone.`,
-    );
+    const runningNote = game ? ` ${t("confirm.delete_running")}` : "";
+    const confirmed = await confirmDialog({
+      title: t("confirm.delete_title", { name: instance.name }),
+      description: `${t("confirm.delete_body")}${runningNote}`,
+      confirmLabel: t("common.delete"),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
     if (!confirmed) return;
     setBusy("remove");
     setError(null);
@@ -82,8 +100,9 @@ function InstanceCard({
       await api.instances.remove(instance.id);
       onRunningChanged();
       onChanged();
+      onNotify?.(t("toast.instance_deleted"), instance.name);
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     } finally {
       setBusy(null);
     }
@@ -183,6 +202,8 @@ export function InstanceGrid({
   onOpen,
   onChanged,
   onRunningChanged,
+  onError,
+  onNotify,
 }: {
   instances: InstanceSummary[];
   running: RunningMap;
@@ -191,6 +212,8 @@ export function InstanceGrid({
   onOpen: (id: string) => void;
   onChanged: () => void;
   onRunningChanged: () => void;
+  onError?: (cause: unknown) => void;
+  onNotify?: (title: string, detail?: string) => void;
 }) {
   if (loading) {
     return (
@@ -223,13 +246,10 @@ export function InstanceGrid({
     return (
       <div className="empty">
         <BrandMark size={52} className="empty-mark" />
-        <h3>No instances yet</h3>
-        <p style={{ margin: "0 auto 18px", maxWidth: 420 }}>
-          Every instance gets its own mods, resource packs and settings. Create one and pick a
-          mod loader — Fabric, Quilt, Forge, NeoForge or plain vanilla.
-        </p>
+        <h3>{t("instances.empty_title")}</h3>
+        <p className="empty-lead">{t("instances.empty_body")}</p>
         <button type="button" className="btn btn-primary" onClick={onCreate}>
-          <Icon name="plus" size={15} /> Create instance
+          <Icon name="plus" size={15} /> {t("instances.empty_action")}
         </button>
       </div>
     );
@@ -246,6 +266,8 @@ export function InstanceGrid({
           onOpen={() => onOpen(instance.id)}
           onChanged={onChanged}
           onRunningChanged={onRunningChanged}
+          onError={onError}
+          onNotify={onNotify}
         />
       ))}
     </div>

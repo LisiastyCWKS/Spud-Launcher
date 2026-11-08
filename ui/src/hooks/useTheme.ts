@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import type { Theme } from "../lib/types";
 
+/** How long the palette cross-fade runs; matches `data-theme-switching` in v3.css. */
+const SWITCH_MS = 340;
+
 function systemTheme(): "dark" | "light" {
   return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
@@ -17,7 +20,15 @@ export function useTheme() {
   useEffect(() => {
     const apply = () => {
       const next = theme === "system" ? systemTheme() : theme;
-      document.documentElement.dataset.theme = next;
+      const root = document.documentElement;
+      // Arm the cross-fade for one window, then let it go. Keeping the class on
+      // would turn every later hover into a 340 ms colour ease.
+      const switching = root.dataset.theme && root.dataset.theme !== next;
+      if (switching) {
+        root.dataset.themeSwitching = "";
+        window.setTimeout(() => delete root.dataset.themeSwitching, SWITCH_MS);
+      }
+      root.dataset.theme = next;
       setResolved(next);
     };
     apply();

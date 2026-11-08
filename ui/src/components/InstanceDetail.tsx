@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { classNames, copyText, loaderLabel, relativeTime } from "../lib/format";
+import { t } from "../lib/i18n";
+import { confirmDialog } from "../lib/confirm";
 import type {
   InstanceConfig,
   InstalledMod,
@@ -30,6 +32,8 @@ export function InstanceDetail({
   onChanged,
   onRunningChanged,
   onPackInstalled,
+  onError,
+  onNotify,
 }: {
   instanceId: string;
   running: RunningMap;
@@ -37,6 +41,8 @@ export function InstanceDetail({
   onChanged: () => void;
   onRunningChanged: () => void;
   onPackInstalled: (id: string) => void;
+  onError?: (cause: unknown) => void;
+  onNotify?: (title: string, detail?: string) => void;
 }) {
   const [config, setConfig] = useState<InstanceConfig | null>(null);
   const [mods, setMods] = useState<InstalledMod[]>([]);
@@ -47,6 +53,25 @@ export function InstanceDetail({
   >(null);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+
+  /**
+   * Failures land in two places on purpose: the inline line keeps the reason
+   * next to the button that caused it, and the toast catches the case where the
+   * user has already scrolled somewhere else.
+   */
+  const fail = useCallback(
+    (cause: unknown) => {
+      setError(String(cause));
+      onError?.(cause);
+    },
+    [onError],
+  );
+  const announce = useCallback(
+    (title: string, detail?: string) => {
+      onNotify?.(title, detail);
+    },
+    [onNotify],
+  );
 
   const game = running[instanceId] ?? null;
 
@@ -60,9 +85,9 @@ export function InstanceDetail({
       setConfig(next);
       setMods(installed);
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     }
-  }, [instanceId]);
+  }, [instanceId, fail]);
 
   useEffect(() => {
     setConfig(null);
@@ -82,9 +107,10 @@ export function InstanceDetail({
       const result = await api.instances.install(instanceId);
       setConfig(result.instance);
       setNote(`Installed ${result.version_id} — ${result.files} files.`);
+      announce(t("toast.installed"), `${result.version_id} · ${t("toast.files", { n: result.files })}`);
       onChanged();
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     } finally {
       setBusy(null);
     }
@@ -97,10 +123,11 @@ export function InstanceDetail({
     try {
       const result = await api.instances.launch(instanceId);
       setNote(`Game running (pid ${result.pid}). Log: ${result.log_file}`);
+      announce(t("toast.launched"), config?.name);
       onRunningChanged();
       onChanged();
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     } finally {
       setBusy(null);
     }
@@ -114,9 +141,10 @@ export function InstanceDetail({
     try {
       const result = await api.instances.stop(instanceId);
       setNote(result.pid ? `Stopped the game (pid ${result.pid}).` : "The game had already exited.");
+      announce(t("toast.stopped"), config.name);
       onRunningChanged();
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     } finally {
       setBusy(null);
     }
@@ -124,20 +152,25 @@ export function InstanceDetail({
 
   const remove = async () => {
     if (!config) return;
-    const runningNote = game ? " The running game is stopped first." : "";
-    const confirmed = window.confirm(
-      `Delete "${config.name}" and every file inside its .minecraft folder?${runningNote} This cannot be undone.`,
-    );
+    const runningNote = game ? ` ${t("confirm.delete_running")}` : "";
+    const confirmed = await confirmDialog({
+      title: t("confirm.delete_title", { name: config.name }),
+      description: `${t("confirm.delete_body")}${runningNote}`,
+      confirmLabel: t("common.delete"),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
     if (!confirmed) return;
     setBusy("remove");
     setError(null);
     try {
       await api.instances.remove(instanceId);
+      announce(t("toast.instance_deleted"), config.name);
       onRunningChanged();
       onChanged();
       onBack();
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
       setBusy(null);
     }
   };
@@ -147,8 +180,9 @@ export function InstanceDetail({
       const folder = await api.instances.folder(instanceId);
       await copyText(folder);
       setNote("Instance folder copied to the clipboard.");
+      announce(t("toast.folder_copied"), folder);
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     }
   };
 
@@ -162,8 +196,9 @@ export function InstanceDetail({
       setNote(
         `Exported ${result.files} files to ${result.path} — the path is on your clipboard.`,
       );
+      announce(t("toast.exported"), result.path);
     } catch (cause) {
-      setError(String(cause));
+      fail(cause);
     } finally {
       setBusy(null);
     }

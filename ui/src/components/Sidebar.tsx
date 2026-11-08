@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
+import { t } from "../lib/i18n";
 import { Icon } from "./Icon";
 import { BrandMark } from "./BrandMark";
 import type { AccountKind, AccountsView, Theme } from "../lib/types";
@@ -24,18 +25,18 @@ type NavIcon =
   | "warning"
   | "copy";
 
-const LIBRARY: Array<{ id: View; label: string; icon: NavIcon }> = [
-  { id: "instances", label: "Instances", icon: "grid" },
-  { id: "discover", label: "Discover", icon: "compass" },
-  { id: "import", label: "Import", icon: "package" },
-  { id: "friends", label: "Friends", icon: "copy" },
-  { id: "diagnostics", label: "Diagnostics", icon: "warning" },
-  { id: "plugins", label: "Plugins", icon: "settings" },
+const LIBRARY: Array<{ id: View; key: string; icon: NavIcon }> = [
+  { id: "instances", key: "nav.instances", icon: "grid" },
+  { id: "discover", key: "nav.discover", icon: "compass" },
+  { id: "import", key: "nav.import", icon: "package" },
+  { id: "friends", key: "nav.friends", icon: "copy" },
+  { id: "diagnostics", key: "nav.diagnostics", icon: "warning" },
+  { id: "plugins", key: "nav.plugins", icon: "settings" },
 ];
 
-const SYSTEM: Array<{ id: View; label: string; icon: NavIcon }> = [
-  { id: "accounts", label: "Accounts", icon: "user" },
-  { id: "settings", label: "Settings", icon: "settings" },
+const SYSTEM: Array<{ id: View; key: string; icon: NavIcon }> = [
+  { id: "accounts", key: "nav.accounts", icon: "user" },
+  { id: "settings", key: "nav.settings", icon: "settings" },
 ];
 
 export function Sidebar({
@@ -59,7 +60,11 @@ export function Sidebar({
 }) {
   const themeIcon = theme === "dark" ? "moon" : theme === "light" ? "sun" : "monitor";
   const themeLabel =
-    theme === "dark" ? "Dark theme" : theme === "light" ? "Light theme" : "System theme";
+    theme === "dark"
+      ? t("shell.theme_dark")
+      : theme === "light"
+        ? t("shell.theme_light")
+        : t("shell.theme_system");
 
   const [switcher, setSwitcher] = useState(false);
   const [switching, setSwitching] = useState<string | null>(null);
@@ -103,27 +108,27 @@ export function Sidebar({
         <BrandMark />
         <div>
           <div className="brand-name">spud</div>
-          <div className="brand-sub">Minecraft launcher</div>
+          <div className="brand-sub">{t("shell.brand_sub")}</div>
         </div>
       </div>
 
       <nav className="nav" aria-label="Main">
-        <div className="nav-label">Library</div>
+        <div className="nav-label">{t("nav.library")}</div>
         {LIBRARY.map((item) => (
           <button
             key={item.id}
             type="button"
             className={classNames("nav-item", view === item.id && "active")}
             onClick={() => onNavigate(item.id)}
-            title={item.label}
+            title={t(item.key)}
           >
             <Icon name={item.icon} />
-            <span>{item.label}</span>
+            <span>{t(item.key)}</span>
           </button>
         ))}
 
         <div className="nav-label" style={{ marginTop: 14 }}>
-          You
+          {t("nav.you")}
         </div>
         {SYSTEM.map((item) => (
           <button
@@ -131,10 +136,10 @@ export function Sidebar({
             type="button"
             className={classNames("nav-item", view === item.id && "active")}
             onClick={() => onNavigate(item.id)}
-            title={item.label}
+            title={t(item.key)}
           >
             <Icon name={item.icon} />
-            <span>{item.label}</span>
+            <span>{t(item.key)}</span>
           </button>
         ))}
       </nav>
@@ -150,9 +155,9 @@ export function Sidebar({
         <div className="account-switch" ref={chip}>
           {switcher ? (
             <div className="account-menu" role="menu">
-              <div className="account-menu-label">Switch account</div>
+              <div className="account-menu-label">{t("shell.switch_account")}</div>
               {list.length === 0 ? (
-                <div className="account-menu-empty">No accounts yet.</div>
+                <div className="account-menu-empty">{t("shell.no_accounts")}</div>
               ) : (
                 list.map((account) => (
                   <button
@@ -167,7 +172,7 @@ export function Sidebar({
                     <div className="account-menu-text">
                       <div className="account-menu-name">{account.username}</div>
                       <div className="account-menu-sub">
-                        {account.kind === "offline" ? "Offline" : "Microsoft"}
+                        {account.kind === "offline" ? t("shell.offline") : t("shell.microsoft")}
                       </div>
                     </div>
                     {switching === account.id ? (
@@ -190,8 +195,8 @@ export function Sidebar({
               >
                 <Icon name="user" size={15} />
                 <div className="account-menu-text">
-                  <div className="account-menu-name">Manage accounts</div>
-                  <div className="account-menu-sub">Add Microsoft or offline</div>
+                  <div className="account-menu-name">{t("shell.manage_accounts")}</div>
+                  <div className="account-menu-sub">{t("shell.manage_accounts_sub")}</div>
                 </div>
               </button>
             </div>
@@ -201,19 +206,19 @@ export function Sidebar({
             type="button"
             className="account-chip"
             onClick={() => setSwitcher((value) => !value)}
-            title={accountName ? "Switch account" : "Sign in"}
+            title={accountName ? t("shell.switch_account") : t("shell.sign_in")}
           >
             <div className="avatar">
               {accountName ? accountName.slice(0, 1).toUpperCase() : "?"}
             </div>
             <div className="account-chip-text">
-              <div className="account-chip-name">{accountName ?? "Not signed in"}</div>
+              <div className="account-chip-name">{accountName ?? t("common.not_signed_in")}</div>
               <div className="account-chip-sub">
                 {accountName
                   ? accountKind === "offline"
-                    ? "Offline account"
-                    : "Microsoft account"
-                  : "Add an account"}
+                    ? t("shell.offline_account")
+                    : t("shell.microsoft_account")
+                  : t("common.add_account")}
               </div>
             </div>
             {list.length > 1 ? <span className="badge">{list.length}</span> : null}

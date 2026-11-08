@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api } from "../lib/api";
+import { confirmDialog } from "../lib/confirm";
+import { t } from "../lib/i18n";
 import { bytes, relativeTime } from "../lib/format";
 import type { LauncherSettings, SyncRemoteView, SyncStatus } from "../lib/types";
 import { Icon } from "./Icon";
@@ -127,7 +129,14 @@ export function SyncPanel({
   };
 
   const forget = async (instanceId: string, file: string) => {
-    if (!window.confirm("Delete this snapshot from the remote? This cannot be undone.")) return;
+    const confirmed = await confirmDialog({
+      title: t("confirm.delete_snapshot_title"),
+      description: t("confirm.delete_snapshot_body"),
+      confirmLabel: t("common.delete"),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!confirmed) return;
     setBusy(`forget:${file}`);
     onError(null);
     setNote(null);

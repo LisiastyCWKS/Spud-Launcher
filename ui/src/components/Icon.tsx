@@ -22,7 +22,11 @@ type IconName =
   | "close"
   | "expand"
   | "collapse"
-  | "warning";
+  | "warning"
+  | "info"
+  | "alert"
+  | "check-circle"
+  | "chevron-down";
 
 const paths: Record<IconName, string> = {
   grid: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z",
@@ -50,6 +54,10 @@ const paths: Record<IconName, string> = {
   expand: "M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5",
   collapse: "M3 8h5V3M21 8h-5V3M21 16h-5v5M3 16h5v5",
   warning: "M12 9v4M12 17h.01M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
+  info: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01",
+  alert: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8v5M12 16h.01",
+  "check-circle": "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM8.4 12.4l2.6 2.6 4.6-5.2",
+  "chevron-down": "M6 9l6 6 6-6",
 };
 
 export function Icon({

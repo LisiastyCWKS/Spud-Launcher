@@ -1,0 +1,842 @@
+/* ==========================================================================
+   Spud Launcher 3.0 — the v3 shell layer
+   --------------------------------------------------------------------------
+   `theme.css` owns tokens, `app.css` owns components. This file is the coat of
+   paint that sits on top: depth, glass, motion and the pieces that arrived in
+   3.0 (the toast stack, the confirmation dialog, the ambient light).
+
+   Ordering matters. Every selector here is written to win against the 2.x
+   component without `!important`, either by being later in the cascade or by
+   carrying one extra class.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Depth tokens
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* Elevation is a ramp, not a pile of one-off shadows. Four steps is enough:
+     resting card, hovered card, popover, dialog. */
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.28), 0 1px 1px rgb(0 0 0 / 0.16);
+  --elev-2: 0 4px 14px -4px rgb(0 0 0 / 0.42), 0 2px 5px -2px rgb(0 0 0 / 0.3);
+  --elev-3: 0 14px 34px -10px rgb(0 0 0 / 0.5), 0 4px 12px -4px rgb(0 0 0 / 0.32);
+  --elev-4: 0 32px 70px -20px rgb(0 0 0 / 0.62), 0 8px 20px -8px rgb(0 0 0 / 0.35);
+
+  /* Glass: one recipe, three strengths. `backdrop-filter` alone reads as mud on
+     a flat colour, so every glass surface also carries a top-down highlight. */
+  --glass: color-mix(in srgb, var(--surface) 72%, transparent);
+  --glass-strong: color-mix(in srgb, var(--surface) 88%, transparent);
+  --glass-border: color-mix(in srgb, var(--border-strong) 70%, transparent);
+  --sheen: linear-gradient(
+    180deg,
+    color-mix(in srgb, white 7%, transparent),
+    transparent 42%
+  );
+
+  --ring: color-mix(in srgb, var(--accent) 42%, transparent);
+  --ring-soft: color-mix(in srgb, var(--accent) 16%, transparent);
+  --skeleton: color-mix(in srgb, var(--surface-3) 82%, var(--text) 4%);
+}
+
+:root[data-theme="light"] {
+  --elev-1: 0 1px 2px rgb(16 28 20 / 0.07), 0 1px 1px rgb(16 28 20 / 0.04);
+  --elev-2: 0 4px 14px -4px rgb(16 28 20 / 0.12), 0 2px 5px -2px rgb(16 28 20 / 0.07);
+  --elev-3: 0 14px 34px -10px rgb(16 28 20 / 0.16), 0 4px 12px -4px rgb(16 28 20 / 0.09);
+  --elev-4: 0 32px 70px -20px rgb(16 28 20 / 0.22), 0 8px 20px -8px rgb(16 28 20 / 0.1);
+  --glass: color-mix(in srgb, var(--surface) 76%, transparent);
+  --glass-strong: color-mix(in srgb, var(--surface) 92%, transparent);
+  --glass-border: color-mix(in srgb, var(--border-strong) 60%, transparent);
+  --sheen: linear-gradient(180deg, rgb(255 255 255 / 0.6), transparent 46%);
+  --skeleton: color-mix(in srgb, var(--surface-3) 88%, var(--text) 6%);
+}
+
+/* --------------------------------------------------------------------------
+   2. Smooth theme switching
+   --------------------------------------------------------------------------
+   The swap is a class on `<html>` for ~340 ms. Without it a theme change is a
+   hard cut; with it, every painted surface eases to the new palette at once.
+   Scoped to the transition window so it never competes with component motion.
+   -------------------------------------------------------------------------- */
+
+:root[data-theme-switching] *,
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after {
+  transition:
+    background-color 320ms var(--ease-out),
+    border-color 320ms var(--ease-out),
+    color 320ms var(--ease-out),
+    box-shadow 320ms var(--ease-out),
+    fill 320ms var(--ease-out),
+    stroke 320ms var(--ease-out) !important;
+  transition-delay: 0ms !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. Ambient light
+   --------------------------------------------------------------------------
+   Two very low-alpha accent pools behind the shell. They give the glass
+   something to refract and stop the dark theme from reading as a flat void,
+   without touching a single component's stacking context.
+   -------------------------------------------------------------------------- */
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      52rem 32rem at 82% -8%,
+      color-mix(in srgb, var(--accent) 11%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      40rem 26rem at 6% 104%,
+      color-mix(in srgb, var(--accent) 7%, transparent),
+      transparent 70%
+    );
+  opacity: 0.9;
+}
+
+:root[data-theme="light"] body::after {
+  opacity: 0.55;
+}
+
+:root[data-bg="on"] body::after {
+  opacity: 0.35;
+}
+
+/* --------------------------------------------------------------------------
+   4. Shell
+   -------------------------------------------------------------------------- */
+
+.sidebar {
+  position: relative;
+  z-index: 2;
+  background:
+    var(--sheen),
+    color-mix(in srgb, var(--bg-soft) 92%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  box-shadow: inset -1px 0 0 color-mix(in srgb, white 3%, transparent);
+}
+
+/* The rail stays a rail even when a wallpaper is on: the v2 rule at the same
+   specificity is only a background swap, so this has to be the later one. */
+:root[data-bg="on"] .sidebar {
+  background:
+    var(--sheen),
+    color-mix(in srgb, var(--bg-soft) 74%, transparent);
+  backdrop-filter: blur(22px) saturate(1.12);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 4%, transparent),
+      transparent 70%
+    ),
+    color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(18px) saturate(1.1);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+:root[data-bg="on"] .topbar {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 5%, transparent),
+      transparent 70%
+    ),
+    color-mix(in srgb, var(--bg-soft) 76%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+   5. Brand and navigation
+   -------------------------------------------------------------------------- */
+
+.brand-mark {
+  border-radius: calc(var(--radius) + 1px);
+  box-shadow:
+    0 6px 16px -6px color-mix(in srgb, var(--accent) 65%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 28%, transparent);
+}
+
+.brand-name {
+  letter-spacing: -0.03em;
+}
+
+.nav-label {
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.nav-item {
+  border-radius: var(--radius-sm);
+  position: relative;
+}
+
+.nav-item:hover {
+  background: color-mix(in srgb, var(--surface-2) 78%, transparent);
+}
+
+.nav-item.active {
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      color-mix(in srgb, var(--accent) 5%, transparent) 72%
+    ),
+    color-mix(in srgb, var(--surface-2) 60%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.nav-item.active .icon {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 55%, transparent));
+}
+
+/* --------------------------------------------------------------------------
+   6. Buttons — micro-interactions
+   -------------------------------------------------------------------------- */
+
+.btn {
+  position: relative;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--elev-1);
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--elev-2);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+  box-shadow: var(--elev-1);
+  transition-duration: 70ms;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ring);
+}
+
+.btn-primary {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, white 16%, transparent),
+      transparent 58%
+    ),
+    linear-gradient(180deg, var(--accent), var(--accent-strong));
+  border-color: color-mix(in srgb, var(--accent-strong) 70%, black);
+  box-shadow:
+    var(--elev-1),
+    inset 0 1px 0 color-mix(in srgb, white 26%, transparent);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, white 22%, transparent),
+      transparent 58%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 88%, white),
+      var(--accent-strong)
+    );
+  box-shadow:
+    var(--elev-2),
+    0 6px 22px -8px color-mix(in srgb, var(--accent) 70%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 30%, transparent);
+}
+
+.btn-danger {
+  box-shadow:
+    var(--elev-1),
+    inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
+}
+
+.btn-danger:hover:not(:disabled) {
+  box-shadow:
+    var(--elev-2),
+    0 6px 20px -10px color-mix(in srgb, var(--danger) 65%, transparent);
+}
+
+.icon-btn {
+  border-radius: var(--radius-sm);
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out),
+    transform 160ms var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out);
+}
+
+.icon-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--elev-1);
+}
+
+.icon-btn:active {
+  transform: scale(0.94);
+}
+
+/* --------------------------------------------------------------------------
+   7. Inputs
+   -------------------------------------------------------------------------- */
+
+.input,
+.select,
+.textarea {
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out),
+    background-color var(--dur-2) var(--ease-out);
+}
+
+.input:hover,
+.select:hover,
+.textarea:hover {
+  border-color: var(--border-strong);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: 0 0 0 3px var(--ring-soft);
+}
+
+.checkbox input {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   8. Surfaces
+   -------------------------------------------------------------------------- */
+
+.card {
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background:
+    var(--sheen),
+    color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: var(--elev-1);
+  transition:
+    border-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out),
+    transform 220ms var(--ease-out);
+}
+
+:root[data-bg="on"] .card {
+  background:
+    var(--sheen),
+    var(--glass);
+  backdrop-filter: blur(14px) saturate(1.05);
+}
+
+.instance-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  box-shadow:
+    var(--elev-3),
+    0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+  transform: translateY(-3px);
+}
+
+.instance-card:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--elev-3),
+    0 0 0 2px var(--accent);
+}
+
+.instance-card:active {
+  transform: translateY(-1px);
+  transition-duration: 90ms;
+}
+
+.chip {
+  border-radius: 99px;
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+}
+
+.chip.active {
+  box-shadow: 0 4px 14px -8px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+
+.badge {
+  border-radius: 99px;
+}
+
+/* --------------------------------------------------------------------------
+   9. Toast stack
+   -------------------------------------------------------------------------- */
+
+.toaster {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(378px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.toaster .toast {
+  position: relative;
+  inset: auto;
+  width: auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 11px;
+  padding: 12px 12px 13px;
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  background:
+    var(--sheen),
+    var(--glass-strong);
+  backdrop-filter: blur(20px) saturate(1.15);
+  box-shadow: var(--elev-3);
+  pointer-events: auto;
+  overflow: hidden;
+  animation: toast-in 300ms var(--ease-out) both;
+}
+
+.toaster .toast.leaving {
+  animation: toast-out 200ms var(--ease-in-out) both;
+}
+
+/* A hairline of the kind's colour down the left edge: enough to read the tone
+   from the corner of an eye without tinting the whole message. */
+.toaster .toast::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--kind, var(--accent));
+}
+
+.toast-success {
+  --kind: var(--success);
+}
+.toast-error {
+  --kind: var(--danger);
+}
+.toast-warning {
+  --kind: var(--warning);
+}
+.toast-info {
+  --kind: var(--accent);
+}
+
+.toast-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--kind, var(--accent));
+  background: color-mix(in srgb, var(--kind, var(--accent)) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kind, var(--accent)) 22%, transparent);
+}
+
+.toast-body {
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.toaster .toast-title {
+  display: block;
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+.toast-text {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.toast-action {
+  appearance: none;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out);
+}
+
+.toast-action:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.toast-close {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out);
+}
+
+.toast-close:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+}
+
+.toast-close:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+/* The countdown bar: same duration the store schedules. */
+.toast-timer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  transform-origin: left;
+  background: color-mix(in srgb, var(--kind, var(--accent)) 78%, transparent);
+  animation-name: toast-timer;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.toaster:hover .toast-timer {
+  animation-play-state: paused;
+}
+
+@keyframes toast-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   10. Confirmation dialog
+   -------------------------------------------------------------------------- */
+
+.modal-overlay {
+  background: color-mix(in srgb, #04070533 100%, transparent);
+  backdrop-filter: blur(6px) saturate(1.05);
+  animation: fade-in 180ms var(--ease-out) both;
+}
+
+.confirm-overlay {
+  z-index: 80;
+}
+
+.confirm {
+  width: min(440px, 100%);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 14px;
+  padding: 20px;
+  border-radius: calc(var(--radius) + 4px);
+  border: 1px solid var(--glass-border);
+  background:
+    var(--sheen),
+    var(--glass-strong);
+  backdrop-filter: blur(22px) saturate(1.1);
+  box-shadow: var(--elev-4);
+  animation: modal-in 240ms var(--ease-spring) both;
+}
+
+.confirm-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.confirm-mark.danger {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
+
+.confirm-copy {
+  min-width: 0;
+}
+
+.confirm-title {
+  margin: 6px 0 6px;
+  font-size: 16px;
+  font-weight: 680;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.confirm-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.confirm-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/* --------------------------------------------------------------------------
+   11. Update banner
+   -------------------------------------------------------------------------- */
+
+.update-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--accent) 12%, transparent),
+      transparent 70%
+    ),
+    color-mix(in srgb, var(--surface) 70%, transparent);
+  backdrop-filter: blur(14px);
+  font-size: 12.5px;
+  color: var(--text-soft);
+  animation: notice-in 320ms var(--ease-out) both;
+}
+
+.update-banner .update-dot {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: var(--accent-ink);
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+
+.update-banner strong {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.update-banner .btn {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.update-banner .update-dismiss {
+  flex: 0 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   12. Loading
+   -------------------------------------------------------------------------- */
+
+.skeleton {
+  background: var(--skeleton);
+}
+
+.skeleton::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--text) 9%, transparent),
+    transparent
+  );
+}
+
+.spinner {
+  border-width: 2px;
+  border-color: color-mix(in srgb, var(--text) 16%, transparent);
+  border-top-color: var(--accent);
+  animation-duration: 620ms;
+}
+
+/* --------------------------------------------------------------------------
+   13. Responsive
+   -------------------------------------------------------------------------- */
+
+/* The window can be dragged down to 920 px, and a user can force it smaller
+   with a tiling WM, so the shell keeps three widths rather than one. */
+@media (max-width: 1180px) {
+  :root {
+    --content-max: 100%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .toaster {
+    right: 14px;
+    bottom: 14px;
+    width: min(340px, calc(100vw - 28px));
+  }
+}
+
+/* Below 880 px the sidebar becomes an icon rail: labels drop, the brand keeps
+   only its mark, and every control still has its `title` for a native tooltip. */
+@media (max-width: 880px) {
+  .app {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding: 16px 8px;
+    gap: 14px;
+  }
+
+  .brand {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .brand > div:last-child,
+  .nav-label,
+  .nav-item > span,
+  .account-chip-text,
+  .account-chip .badge,
+  .sidebar-foot .nav-item > span {
+    display: none;
+  }
+
+  .nav-item,
+  .account-chip {
+    justify-content: center;
+    padding: 9px 0;
+  }
+
+  .nav-item:hover {
+    transform: none;
+  }
+
+  .account-chip {
+    width: 100%;
+  }
+
+  .sidebar-foot {
+    gap: 8px;
+  }
+
+  .content {
+    padding: 14px 16px 56px;
+  }
+
+  .topbar {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    height: auto;
+    min-height: 60px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    gap: 10px;
+  }
+
+  .topbar-sub {
+    display: none;
+  }
+
+  .toaster {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+
+  .confirm {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .confirm-mark {
+    margin-bottom: 4px;
+  }
+
+  .confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .confirm-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .update-banner {
+    flex-wrap: wrap;
+  }
+
+  .update-banner .btn {
+    margin-left: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   14. Motion preferences
+   --------------------------------------------------------------------------
+   `theme.css` already kills every transition and animation for users who ask
+   for less motion. These rules make sure nothing here *depends* on motion for
+   meaning: the countdown bar simply stops existing.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-timer {
+    display: none;
+  }
+}

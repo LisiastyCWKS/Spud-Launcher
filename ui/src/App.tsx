@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { api, onInstallProgress } from "./lib/api";
+import { t, setLocale } from "./lib/i18n";
+import { reason, toast } from "./lib/toast";
 import type {
   AccountsView,
   AuthStatus,
@@ -17,6 +19,7 @@ import { InstanceGrid } from "./components/InstanceGrid";
 import { InstanceDetail } from "./components/InstanceDetail";
 import { CreateInstanceDialog } from "./components/CreateInstanceDialog";
 import { ModrinthPanel } from "./components/ModrinthPanel";
+import { CurseForgePanel } from "./components/CurseForgePanel";
 import { AccountsPanel } from "./components/AccountsPanel";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { DiagnosticsPanel } from "./components/DiagnosticsPanel";
@@ -24,8 +27,12 @@ import { FriendsPanel } from "./components/FriendsPanel";
 import { ImportPanel } from "./components/ImportPanel";
 import { ProgressToast } from "./components/ProgressToast";
 import { PluginsView } from "./components/PluginsView";
+import { UpdateBanner } from "./components/UpdateBanner";
+import { Toaster } from "./components/Toaster";
+import { ConfirmHost } from "./components/ConfirmHost";
 import { emitPluginEvent, reloadPlugins } from "./lib/plugins";
 import { Icon } from "./components/Icon";
+import { classNames } from "./lib/format";
 
 /**
  * Merge the saved settings with an unsaved preview from the appearance editor.
@@ -65,11 +72,11 @@ export default function App() {
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [discoverTarget, setDiscoverTarget] = useState<string | null>(null);
+  const [discoverSource, setDiscoverSource] = useState<"modrinth" | "curseforge">("modrinth");
   const [diagnosticsTarget, setDiagnosticsTarget] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [progress, setProgress] = useState<DownloadEvent | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
 
   const appearance = useMemo(
@@ -77,6 +84,21 @@ export default function App() {
     [settings, appearancePreview],
   );
   useAppearance(appearance);
+
+  /**
+   * One funnel for every failure a screen can raise. Errors keep the toast up
+   * longer than a confirmation and carry the raw backend message, because a
+   * recipe name and a Java path are both more useful than "something failed".
+   */
+  const report = useCallback((cause: unknown) => {
+    // `null` is how a screen clears its own error line; only real failures toast.
+    if (cause === null || cause === undefined || cause === "") return;
+    toast.error(t("common.error"), reason(cause));
+  }, []);
+
+  const notify = useCallback((title: string, description?: string) => {
+    toast.success(title, description);
+  }, []);
 
   // A preview belongs to the Settings view. Leaving it drops the unsaved look
   // instead of letting an experiment leak into every other screen.
@@ -99,9 +121,9 @@ export default function App() {
         current && list.some((entry) => entry.id === current) ? current : null,
       );
     } catch (cause) {
-      setError(String(cause));
+      report(cause);
     }
-  }, []);
+  }, [report]);
 
   const refreshAuthStatus = useCallback(async () => {
     try {
@@ -118,8 +140,8 @@ export default function App() {
   // Plugins boot once, after the first paint, so a slow or broken plugin never
   // delays the launcher window showing up.
   useEffect(() => {
-    void reloadPlugins().catch((cause) => setError(String(cause)));
-  }, []);
+    void reloadPlugins().catch(report);
+  }, [report]);
 
   useEffect(() => {
     api.window
@@ -177,8 +199,10 @@ export default function App() {
         setSettings(loadedSettings);
         setAccounts(accountList);
         setDiscoverTarget(list.length > 0 ? list[0].id : null);
+        // Apply locale from settings so translations resolve immediately.
+        setLocale(loadedSettings.locale);
       } catch (cause) {
-        if (alive) setError(String(cause));
+        if (alive) report(cause);
       } finally {
         if (alive) setLoading(false);
       }
@@ -186,7 +210,7 @@ export default function App() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [report]);
 
   useEffect(() => {
     let disposed = false;
@@ -194,7 +218,11 @@ export default function App() {
 
     const attach = async (channel: "install://progress" | "mods://progress") => {
       const unlisten = await onInstallProgress((event) => {
-        if (!disposed) setProgress(event);
+        if (disposed) return;
+        setProgress(event);
+        if (event.type === "finished") {
+          notify(t("toast.download_done"), t("toast.download_done_text", { n: event.files ?? 0 }));
+        }
       }, channel);
       if (disposed) unlisten();
       else unlisteners.push(unlisten);
@@ -207,7 +235,7 @@ export default function App() {
       disposed = true;
       for (const unlisten of unlisteners) unlisten();
     };
-  }, []);
+  }, [notify]);
 
   const selected = useMemo(
     () => instances.find((entry) => entry.id === selectedId) ?? null,
@@ -248,31 +276,31 @@ export default function App() {
     switch (view) {
       case "instances":
         return selected
-          ? { title: selected.name, sub: `${selected.mc_version} · ${selected.ready ? "ready" : "not installed"}` }
+          ? {
+              title: selected.name,
+              sub: `${selected.mc_version} · ${selected.ready ? t("instances.ready") : t("instances.not_installed")}`,
+            }
           : {
-              title: "Instances",
-              sub: `${instances.length} instance${instances.length === 1 ? "" : "s"} · shared libraries and assets`,
+              title: t("instances.title"),
+              sub:
+                instances.length === 1
+                  ? t("instances.subtitle_one")
+                  : t("instances.subtitle_many", { n: instances.length }),
             };
       case "discover":
-        return { title: "Discover", sub: "Mods, modpacks, resource packs and shaders from Modrinth" };
+        return { title: t("discover.title"), sub: t("discover.subtitle") };
       case "import":
-        return {
-          title: "Import",
-          sub: "Other launchers on this PC, or a .zip / .mrpack from a friend",
-        };
+        return { title: t("import.title"), sub: t("import.subtitle") };
       case "friends":
-        return {
-          title: "Friends",
-          sub: "Who is online, which server they are on, and one-click instance copies",
-        };
+        return { title: t("friends.title"), sub: t("friends.subtitle") };
       case "diagnostics":
-        return { title: "Diagnostics", sub: "Live console and the crash logs left by the last runs" };
+        return { title: t("diagnostics.title"), sub: t("diagnostics.subtitle") };
       case "plugins":
-        return { title: "Plugins", sub: "Extensions you installed and what they added to the launcher" };
+        return { title: t("plugins.title"), sub: t("plugins.subtitle") };
       case "accounts":
-        return { title: "Accounts", sub: "Microsoft sign-in or a local offline nickname" };
+        return { title: t("accounts.title"), sub: t("accounts.subtitle") };
       case "settings":
-        return { title: "Settings", sub: "Downloads, Java runtimes, endpoints and data" };
+        return { title: t("settings.title"), sub: t("settings.subtitle") };
     }
   }, [view, selected, instances.length]);
 
@@ -296,8 +324,9 @@ export default function App() {
       />
 
       <main className="main">
+        <UpdateBanner />
         <header className="topbar">
-          <div style={{ minWidth: 0 }}>
+          <div className="topbar-heading">
             <h1 className="topbar-title" key={header.title}>
               {header.title}
             </h1>
@@ -309,8 +338,14 @@ export default function App() {
             <button
               type="button"
               className="icon-btn"
-              title={fullscreen ? "Leave fullscreen (Esc)" : "Fullscreen (F11)"}
-              onClick={() => void api.window.setFullscreen(!fullscreen).then(setFullscreen).catch(() => undefined)}
+              title={fullscreen ? t("shell.leave_fullscreen") : t("shell.fullscreen")}
+              aria-label={fullscreen ? t("shell.leave_fullscreen") : t("shell.fullscreen")}
+              onClick={() =>
+                void api.window
+                  .setFullscreen(!fullscreen)
+                  .then(setFullscreen)
+                  .catch(report)
+              }
             >
               <Icon name={fullscreen ? "collapse" : "expand"} size={16} />
             </button>
@@ -320,29 +355,25 @@ export default function App() {
                 className="btn btn-primary"
                 onClick={() => setCreateOpen(true)}
               >
-                <Icon name="plus" size={15} /> New instance
+                <Icon name="plus" size={15} /> {t("instances.new")}
               </button>
             ) : null}
             {view === "discover" ? (
-              <button type="button" className="btn" onClick={() => void refreshInstances()}>
-                <Icon name="refresh" size={15} /> Refresh
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  void refreshInstances();
+                  notify(t("toast.refreshed"));
+                }}
+              >
+                <Icon name="refresh" size={15} /> {t("common.refresh")}
               </button>
             ) : null}
           </div>
         </header>
 
         <div className="content">
-          {error ? (
-            <div className="notice warn" style={{ marginBottom: 16 }}>
-              <span className="row-between">
-                <span>{error}</span>
-                <button type="button" className="btn btn-sm" onClick={() => setError(null)}>
-                  Dismiss
-                </button>
-              </span>
-            </div>
-          ) : null}
-
           <div
             className="view"
             key={view === "instances" && selectedId ? `detail:${selectedId}` : view}
@@ -355,6 +386,8 @@ export default function App() {
                   onRunningChanged={() => void refreshRunning()}
                   onBack={() => setSelectedId(null)}
                   onChanged={() => void refreshInstances()}
+                  onError={report}
+                  onNotify={notify}
                   onPackInstalled={(id) => {
                     void refreshInstances().then(() => openInstance(id));
                   }}
@@ -368,21 +401,50 @@ export default function App() {
                   onCreate={() => setCreateOpen(true)}
                   onOpen={openInstance}
                   onChanged={() => void refreshInstances()}
+                  onError={report}
+                  onNotify={notify}
                 />
               )
             ) : null}
 
             {view === "discover" ? (
-              <ModrinthPanel
-                instances={instances}
-                targetId={discoverTarget}
-                onTargetChange={setDiscoverTarget}
-                onInstalled={() => void refreshInstances()}
-                onError={setError}
-                onPackInstalled={(id) => {
-                  void refreshInstances().then(() => openInstance(id));
-                }}
-              />
+              <>
+                <div className="chips source-switch">
+                  <button
+                    type="button"
+                    className={classNames("chip", discoverSource === "modrinth" && "active")}
+                    onClick={() => setDiscoverSource("modrinth")}
+                  >
+                    Modrinth
+                  </button>
+                  <button
+                    type="button"
+                    className={classNames("chip", discoverSource === "curseforge" && "active")}
+                    onClick={() => setDiscoverSource("curseforge")}
+                  >
+                    CurseForge
+                  </button>
+                </div>
+                {discoverSource === "modrinth" ? (
+                  <ModrinthPanel
+                    instances={instances}
+                    targetId={discoverTarget}
+                    onTargetChange={setDiscoverTarget}
+                    onInstalled={() => void refreshInstances()}
+                    onError={report}
+                    onPackInstalled={(id) => {
+                      void refreshInstances().then(() => openInstance(id));
+                    }}
+                  />
+                ) : (
+                  <CurseForgePanel
+                    instances={instances}
+                    targetId={discoverTarget}
+                    onTargetChange={setDiscoverTarget}
+                    onError={report}
+                  />
+                )}
+              </>
             ) : null}
 
             {view === "accounts" ? (
@@ -425,8 +487,11 @@ export default function App() {
                 onSaved={(next) => {
                   setAppearancePreview(null);
                   setSettings(next);
+                  setLocale(next.locale);
                   void refreshAuthStatus();
+                  notify(t("toast.settings_saved"), t("toast.settings_saved_text"));
                 }}
+                onError={report}
               />
             ) : null}
           </div>
@@ -439,11 +504,14 @@ export default function App() {
         onClose={() => setCreateOpen(false)}
         onCreated={(instance) => {
           setCreateOpen(false);
+          notify(t("toast.instance_created"), instance.name);
           void refreshInstances().then(() => openInstance(instance.id));
         }}
       />
 
       <ProgressToast event={progress} />
+      <Toaster />
+      <ConfirmHost />
     </div>
   );
 }

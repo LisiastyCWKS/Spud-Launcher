@@ -711,3 +711,49 @@ export interface FriendView {
   instances: SharedInstance[];
   archives: SharedArchive[];
 }
+
+// ---------------------------------------------------------------------------
+// Auto-update
+// ---------------------------------------------------------------------------
+
+export interface UpdateInfo {
+  latest: string;
+  url: string;
+  available: boolean;
+  notes: string;
+}
+
+// ---------------------------------------------------------------------------
+// CurseForge
+// ---------------------------------------------------------------------------
+
+export interface CurseForgeHit {
+  id: number;
+  name: string;
+  slug: string;
+  summary: string;
+  downloads: number;
+  icon_url: string | null;
+  author: string;
+  game_versions: string[];
+  mod_loaders: string[];
+  date_modified: string;
+  project_type: string;
+  url: string;
+}
+
+export interface CurseForgeSearch {
+  hits: CurseForgeHit[];
+  total: number;
+  page_size: number;
+  index: number;
+}
+
+export interface CurseForgeSearchQuery {
+  text: string;
+  project_type: string;
+  game_version?: string;
+  loader?: string;
+  limit: number;
+  offset: number;
+}

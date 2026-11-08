@@ -114,7 +114,7 @@ pub fn idle() -> Activity {
 pub fn playing(instance: &str, loader: &str, version: &str) -> Activity {
     Activity {
         details: format!("Playing {instance}"),
-        state: format!("{loader} Â· {version}"),
+        state: format!("{loader} \u{00b7} {version}"),
     }
 }
 
@@ -134,28 +134,66 @@ impl Pipe {
                 continue;
             };
             let mut pipe = Self { handle };
+            // Opcode 0 = handshake
             let handshake = json!({ "v": 1, "client_id": client_id });
-            if pipe.send(&handshake).is_err() {
+            if pipe.send_op(0, &handshake).is_err() {
                 continue;
             }
-            // Discord answers the handshake with a READY frame. The pipe is a
-            // plain `File` on this side and cannot be given a read timeout, so
-            // the reply stays in the kernel buffer instead of being drained:
-            // the payloads here are tiny and a write failure is the signal the
-            // connection died.
-            return Some(pipe);
+            // Discord responds with opcode 1 (FRAME) containing READY.
+            // We MUST drain this reply — if we skip it, the kernel pipe buffer
+            // fills up on the next write and SET_ACTIVITY is silently lost.
+            // Spawn a short-lived reader thread so we can impose a timeout
+            // without blocking the whole presence worker indefinitely.
+            let handle_clone = match pipe.try_clone() {
+                Some(c) => c,
+                None => continue,
+            };
+            let (tx, rx) = std::sync::mpsc::channel();
+            std::thread::spawn(move || {
+                let _ = tx.send(read_frame(handle_clone));
+            });
+            match rx.recv_timeout(std::time::Duration::from_secs(3)) {
+                Ok(Ok(_)) => return Some(pipe),
+                _ => continue,
+            }
         }
         None
     }
 
-    fn send(&mut self, payload: &Value) -> std::io::Result<()> {
+    /// Send an opcode + JSON payload in the Discord wire format:
+    /// [op: u32 LE][len: u32 LE][json bytes]
+    fn send_op(&mut self, op: u32, payload: &Value) -> std::io::Result<()> {
         let raw = serde_json::to_vec(payload)?;
-        let mut frame = Vec::with_capacity(raw.len() + 4);
+        let mut frame = Vec::with_capacity(raw.len() + 8);
+        frame.extend_from_slice(&op.to_le_bytes());
         frame.extend_from_slice(&(raw.len() as u32).to_le_bytes());
         frame.extend_from_slice(&raw);
         self.handle.write_all(&frame)?;
         self.handle.flush()
     }
+
+    /// Convenience: opcode 1 (FRAME) is what SET_ACTIVITY uses.
+    fn send(&mut self, payload: &Value) -> std::io::Result<()> {
+        self.send_op(1, payload)
+    }
+
+    fn try_clone(&self) -> Option<std::fs::File> {
+        self.handle.try_clone().ok()
+    }
+}
+
+fn read_frame(mut handle: std::fs::File) -> std::io::Result<Vec<u8>> {
+    use std::io::Read;
+    let mut header = [0u8; 8];
+    handle.read_exact(&mut header)?;
+    let len = u32::from_le_bytes([header[4], header[5], header[6], header[7]]) as usize;
+    // Cap at 64 KB — a READY frame is always tiny.
+    if len > 65536 {
+        return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "frame too large"));
+    }
+    let mut body = vec![0u8; len];
+    handle.read_exact(&mut body)?;
+    Ok(body)
 }
 
 fn push(pipe: &mut Pipe, activity: &Option<Activity>, started: Instant) -> Result<(), ()> {
@@ -168,7 +206,10 @@ fn push(pipe: &mut Pipe, activity: &Option<Activity>, started: Instant) -> Resul
                     "details": truncate(&activity.details),
                     "state": truncate(&activity.state),
                     "timestamps": { "start": started_epoch_ms(started) },
-                    "assets": { "large_text": "Spud Launcher" }
+                    "assets": {
+                        "large_image": "spud",
+                        "large_text": "Spud Launcher"
+                    }
                 }
             },
             "nonce": nonce()

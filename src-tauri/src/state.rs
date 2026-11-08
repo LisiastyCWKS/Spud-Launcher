@@ -165,12 +165,21 @@ pub fn resolve_client_id(settings: &LauncherSettings) -> String {
 
 /// Presence runs only when the toggle is on *and* an application id exists;
 /// without an id Discord has nothing to attribute the activity to.
+///
+/// The built-in fallback id (`1568705509882728518`) is the Spud Launcher
+/// Discord application — it works out of the box for every user. A custom id
+/// in settings overrides it.
+const DEFAULT_DISCORD_CLIENT_ID: &str = "1568705509882728518";
+
 fn discord_client_id(settings: &LauncherSettings) -> Option<String> {
     if !settings.discord_rpc {
         return None;
     }
-    settings
+    // Custom id in settings wins; fall back to the built-in Spud Launcher app.
+    let id = settings
         .discord_client_id
         .clone()
         .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| DEFAULT_DISCORD_CLIENT_ID.to_string());
+    Some(id)
 }

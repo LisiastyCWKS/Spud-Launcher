@@ -112,6 +112,8 @@ pub fn run() {
             commands::backgrounds_list,
             commands::background_data,
             commands::backgrounds_open_folder,
+            commands::check_update,
+            commands::curseforge_search,
         ]);
 
     builder

@@ -7,6 +7,8 @@ import type {
   AuthStatus,
   BackgroundFile,
   CrashAnalysis,
+  CurseForgeSearch,
+  CurseForgeSearchQuery,
   DedupeReport,
   DetectedInstance,
   DeviceCode,
@@ -54,6 +56,7 @@ import type {
   SyncRemoteView,
   SyncStatus,
   TuningPreview,
+  UpdateInfo,
   VersionSummary,
   WindowState,
 } from "./types";
@@ -226,6 +229,13 @@ export const api = {
     state: () => invoke<WindowState>("window_state"),
     setFullscreen: (fullscreen: boolean) =>
       invoke<boolean>("window_fullscreen", { fullscreen }),
+  },
+  update: {
+    check: () => invoke<UpdateInfo>("check_update"),
+  },
+  curseforge: {
+    search: (query: CurseForgeSearchQuery) =>
+      invoke<CurseForgeSearch>("curseforge_search", { query }),
   },
 };
 type Unlisten = () => void;

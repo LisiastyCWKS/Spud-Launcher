@@ -118,3 +118,39 @@ Suwaki i kafle działają natychmiast: panel podnosi szkic do `App`, a `useAppea
 | `ui/src/components/AppearancePanel.tsx` | Panel w Settings |
 | `ui/src/styles/theme.css` | Presety, zaokrąglenia, wyłącznik ruchu |
 | `ui/src/styles/app.css` | Warstwa tła, glass panele, gęstość, style edytora |
+
+---
+
+## Warstwa 3.0 (`v3.css`)
+
+Od 3.0 wygląd siedzi w trzech plikach, ładowanych w tej kolejności: `theme.css` (tokeny), `app.css` (komponenty) i `v3.css` (powłoka). Nowy plik nie rośnie w miejscu `app.css`, bo ten ma już 2615 linii — dopiski wchodzą do warstwy, która wygrywa kaskadą, nie `!important`.
+
+| Token | Rola |
+|---|---|
+| `--elev-1…4` | Skala elevacji: karta, karta w hoverze, popover, dialog |
+| `--glass`, `--glass-strong`, `--glass-border` | Trzy gęstości szkła na `color-mix()` |
+| `--sheen` | Gradient światła od góry — bez niego samo `backdrop-filter` czyta się jak błoto |
+| `--ring`, `--ring-soft` | Pierścienie focusu i poświata pól |
+| `--skeleton` | Tło szkieletów ładowania |
+
+`body::after` rysuje dwie bardzo niskie plamy akcentu pod shellem. Dają szkłu co refraktować i odbierają ciemnemu motywowi płaskość — `z-index: -1`, więc nie dotykają żadnego kontekstu nakładania.
+
+### Płynna zmiana motywu
+
+`useTheme` ustawia `data-theme-switching` na `<html>` tylko na czas podmiany palety (320 ms), potem atrybut znika. Zostawiony na stałe zamieniłby każdy późniejszy hover w 340-milisekundowe przejście koloru.
+
+### Sidebar jako rail ikon
+
+Poniżej 880 px kolumna zwija się do 64 px: etykiety znikają, marka zostaje sama, a każdy przycisk trzyma swój `title`, więc natywny tooltip dalej mówi, co robi. To czysty CSS — żadnego stanu w JS.
+
+### Toast stack i dialog
+
+Style obu elementów leżą w `v3.css` (sekcje 9 i 10), razem z `@keyframes toast-in` / `toast-out` / `toast-timer`. Pasek odliczania używa `animationDuration` ustawionego z tej samej liczby, którą planuje store (`lib/toast.ts`), więc nigdy się nie rozjeżdżają. `prefers-reduced-motion` chowa pasek całkowicie — komunikat nie zależy od ruchu.
+
+| Plik | Rola |
+|---|---|
+| `ui/src/styles/v3.css` | Elevacja, szkło, poświata, przyciski, inputy, toast, confirm, responsywność |
+| `ui/src/lib/toast.ts` | Store powiadomień: limit 4, dedupe, pauza na hover, `duration: 0` |
+| `ui/src/components/Toaster.tsx` | Renderer stosu, `useSyncExternalStore` |
+| `ui/src/lib/confirm.ts` | Promise-based kolejka potwierdzeń |
+| `ui/src/components/ConfirmHost.tsx` | `alertdialog`, pułapka focusu, Escape i tło anulują |
